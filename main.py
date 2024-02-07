@@ -4,12 +4,15 @@ from tkinter import ttk
 from PIL import Image, ImageTk, ImageFilter
 from tkinter.simpledialog import askstring
 
-
 import os
 import glob
 import convert
+from pathlib import Path 
 
 from PIL import *
+
+FILE = Path(__file__).resolve()
+BASE_DIR = FILE.parents[0]  # PHARMA-R-D/ 
 
 # colors for the bboxes
 COLORS = ['red', 'blue', 'olive', 'teal', 'cyan', 'green', 'black', 'purple', 'orange', 'brown','crimson','yellow']
@@ -120,8 +123,6 @@ class LabelTool():
             self.classcandidate.set("Class file not found")
             self.classcandidate['values'] = ["Class file not found"]
 
-        
-
 		# Add a label for total bounding boxes
         self.totalBboxLabel = Label(self.frame, text='Total BBoxes: 0')
         self.totalBboxLabel.grid(row=3, column=4,sticky=W+E, padx=(10, 130))
@@ -129,8 +130,6 @@ class LabelTool():
         self.lb1 = Label(self.frame, text = 'Bounding boxes:')
         self.lb1.grid(row = 3, column = 4, sticky=W+E, padx=(130, 50))
 
-
-        
         self.listbox = Listbox(self.frame, width = 40, height = 12)
         self.listbox.grid(row = 4, column = 4, sticky = N+S)
         self.btnDel = Button(self.frame, text = 'Clear', bg='#c1121f',fg = 'white',relief='groove',command = self.delBBox)
@@ -378,15 +377,14 @@ class LabelTool():
             return None
 ################################################################################################
     #-----------------------Function For Load Directory--------------------------------
-    def loadDir(self, dbg=False):
+    def loadDir(self, load_directory=False):
         self.imageList = []
-        if not dbg:
+        if not load_directory:
             self.parent.focus()
-            s = str(filedialog.askdirectory(initialdir=self.initial_image_dir)).split('/')[-1]
-            self.category = s
+            self.category = str(filedialog.askdirectory(initialdir=self.initial_image_dir)) # .split('/')[-1]
         else:
-            s = r'D:\workspace\python\labelGUI'
-        self.imageDir = os.path.join(r'./Images', '%s' % (self.category))
+            self.category  =  load_directory # r'D:\workspace\python\labelGUI'
+        self.imageDir = self.category # os.path.join(r'./Images', '%s' % (self.category))
         for ext in ('*.png', '*.jpg'):
             self.imageList.extend(glob.glob(os.path.join(self.imageDir, ext)))
         if len(self.imageList) == 0:

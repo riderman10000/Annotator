@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import os
 from os import walk, getcwd
 from PIL import Image
