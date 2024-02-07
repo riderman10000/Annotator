@@ -5,3 +5,4 @@
 ./Images\Sample\3.png
 ./Images\Sample\dogcat.jpg
 ./Images\Sample\2.png
+./Images\Sample\test2.jpg
