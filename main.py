@@ -18,15 +18,14 @@ COLORS = ['red', 'blue', 'olive', 'teal', 'cyan', 'green', 'black', 'purple', 'o
 SIZE = 256, 256
 
 class LabelTool():
-    def __init__(self, master):
+    def __init__(self, master, initial_image_dir = None ):
         # set up the main frame
         self.parent = master
+        self.initial_image_dir = initial_image_dir if (initial_image_dir) else os.getcwd()
         self.parent.title("Yolo Annotator")
         self.frame = Frame(self.parent)
         self.frame.pack(fill=BOTH, expand=True)
         self.parent.resizable(width = FALSE, height = FALSE)
-
-        
 
         #color picker
         self.index = 0
@@ -329,7 +328,7 @@ class LabelTool():
         self.imageList = []
         if not dbg:
             self.parent.focus()
-            s = str(filedialog.askdirectory(initialdir=os.getcwd())).split('/')[-1]
+            s = str(filedialog.askdirectory(initialdir=self.initial_image_dir)).split('/')[-1]
             self.category = s
         else:
             s = r'D:\workspace\python\labelGUI'
