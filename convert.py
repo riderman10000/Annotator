@@ -43,7 +43,7 @@ def Convert2Yolo(mypath, outpath, project, classes):
         """ Open output text files """
         if not os.path.exists(outpath):
             os.mkdir(outpath)
-        txt_outpath = outpath + re.split('.jpg|.png',txt_name)[0] + '.txt'
+        txt_outpath = outpath + re.split('.jpg|.png',txt_name)[0]
         print("Output:" + txt_outpath)
         txt_outfile = open(txt_outpath, "w")
         
@@ -71,7 +71,7 @@ def Convert2Yolo(mypath, outpath, project, classes):
                 cls_id = classes.index(cls)
                 print(elems[0])
 
-                img_path = str('%s/Images/%s/%s'%(wd, project, os.path.splitext(txt_name)[0]))
+                img_path = str('%s/Images/%s/%s'%(wd, project, os.path.splitext(txt_name)[0])+'.jpg')
                 #t = magic.from_file(img_path)
                 #wh= re.search('(\d+) x (\d+)', t).groups()
                 im=Image.open(img_path)
