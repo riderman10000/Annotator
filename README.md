@@ -39,6 +39,7 @@ The YOLO Annotator is a simple image annotation tool developed in Python using T
 - **Bounding Box Count**: The tool provides the count of the number of bounding boxes drawn inside image.
 - **Color Assignment**: Each class is assigned a unique color for better visualization.
 - **Paste Last Bounding Box**: Press 'v' to paste the last drawn bounding box where the mouse pointer is located.
+- **Paste Last Bounding Box From Previous Image**: Press 'b' to paste the last drawn bounding box from previous image where the mouse pointer is located.
 - **Scroll Support**: Users can scroll horizontally and vertically for larger images.
 
 ## How to Run

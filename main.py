@@ -12,7 +12,7 @@ import convert
 from PIL import *
 
 # colors for the bboxes
-COLORS = ['red', 'blue', 'olive', 'teal', 'cyan', 'green', 'black', 'purple', 'orange', 'brown']
+COLORS = ['red', 'blue', 'olive', 'teal', 'cyan', 'green', 'black', 'purple', 'orange', 'brown','crimson','yellow']
 
 # image sizes for the examples
 SIZE = 256, 256
@@ -64,11 +64,14 @@ class LabelTool():
         self.bbox_cnt = 0
 
         self.class_to_color = {}
+        self.class_list_from_file = {'color':[]} #store class list from file
+        self.last_b_box = [] #store last box coordinates
+
 
 
         # ----------------- GUI stuff ---------------------
 
-        self.ldProjBtn = Button(self.frame, text = "Load Image", command = self.loadDir)
+        self.ldProjBtn = Button(self.frame, text = "Load Image", bg='#84a59d',relief='flat',command = self.loadDir)
         self.ldProjBtn.grid(row = 0, column = 0,sticky = W+E, padx=5)
 
         # main panel for labeling
@@ -76,51 +79,48 @@ class LabelTool():
         self.mainPanel.bind("<Button-1>", self.mouseClick)
         self.mainPanel.bind("<Button-3>", self.mouseClick)
         self.mainPanel.bind("<Motion>", self.mouseMove)
-        # self.mainPanel.focus_set() #By calling focus_set() on a particular widget, you are designating that widget as the one that should receive keyboard events. 
         self.mainPanel.bind('v', self.pasteLastBbox) #press 'v' to get bbox of last drawn
+        self.mainPanel.bind('b', self.pasteLastBboxFile) #press 'v' to get bbox of last drawn from previous file
         self.parent.bind("a", self.prevImage) # press 'a' to go backforward
         self.parent.bind("d", self.nextImage) # press 'd' to go forward
         self.parent.bind("r", self.clearBBoxShortcut)
 
-
-
-
         self.mainPanel.grid(row = 1, column = 1, columnspan = 3, rowspan = 4, sticky = W+N)
 
-
-
-
 		# Add two buttons for adding and deleting classes in the same row
-        self.btnAddClass = Button(self.frame, text='Add Class', command=self.addNewClass)
-        self.btnAddClass.grid(row=2, column=4, sticky=W+E, padx=(50, 130))
+        self.btnAddClass = Button(self.frame, text='Add Class', bg='#4cc9f0',fg = 'white',relief='raised',command=self.addNewClass)
+        self.btnAddClass.grid(row=2, column=4, sticky=W+E, padx=(50, 135))
 
-        self.btnDeleteClass = Button(self.frame, text='Delete Class', command=self.deleteClass)
-        self.btnDeleteClass.grid(row=2, column=4, sticky=W+E, padx=(150, 50))
-
-
-
-        
-
-        #Choose class display
-        # self.lb1_ = Label(self.frame, text = 'Choose Class')
-        # self.lb1_.grid(row = 2, column = 4,  sticky = W+N)
+        self.btnDeleteClass = Button(self.frame, text='Delete Class', bg='#f28482',fg = 'white',relief='raised',command=self.deleteClass)
+        self.btnDeleteClass.grid(row=2, column=4, sticky=W+E, padx=(150, 55))
 
         # choose class
         self.classname = StringVar()
-        self.classcandidate = ttk.Combobox(self.frame,state='readonly',textvariable=self.classname)
-        self.classcandidate.grid(row=1,column=4)
+        self.classcandidate = ttk.Combobox(self.frame, state='readonly', textvariable=self.classname)
+        self.classcandidate.grid(row=1, column=4)
+
         if os.path.exists(self.classcandidate_filename):
             with open(self.classcandidate_filename) as cf:
                 for line in cf.readlines():
                     self.cla_can_temp.append(line.strip('\n'))
-                    self.classcnt +=1
+                    self.classcnt += 1
 
-        self.classcandidate['values'] = self.cla_can_temp
-        self.classcandidate.current(0)
-        self.parent.bind('<Key>', self.setClassShortcut)
+            if self.cla_can_temp:
+                self.classcandidate['values'] = self.cla_can_temp
+                # print(self.classcandidate.current(0))
+                self.classcandidate.current(0)
+                self.parent.bind('<Key>', self.setClassShortcut)
+                self.currentLabelclass = self.classcandidate.get()  # init
+                self.classcandidate.bind('<<ComboboxSelected>>', self.setClass)
+            else:
+                # Handle case where class list is empty
+                self.classcandidate.set("No classes available")
+                self.classcandidate['values'] = ["No classes available"]
+        else:
+            # Handle case where class candidate file does not exist
+            self.classcandidate.set("Class file not found")
+            self.classcandidate['values'] = ["Class file not found"]
 
-        self.currentLabelclass = self.classcandidate.get() #init
-        self.classcandidate.bind('<<ComboboxSelected>>', self.setClass)
         
 
 		# Add a label for total bounding boxes
@@ -134,25 +134,25 @@ class LabelTool():
         
         self.listbox = Listbox(self.frame, width = 40, height = 12)
         self.listbox.grid(row = 4, column = 4, sticky = N+S)
-        self.btnDel = Button(self.frame, text = 'Clear', command = self.delBBox)
+        self.btnDel = Button(self.frame, text = 'Clear', bg='#c1121f',fg = 'white',relief='groove',command = self.delBBox)
         self.btnDel.grid(row = 5, column = 4, sticky = W+E+N)
-        self.btnClear = Button(self.frame, text = 'ClearAll', command = self.clearBBox)
+        self.btnClear = Button(self.frame, text = 'ClearAll',bg='#c1121f',fg = 'white',relief='groove', command = self.clearBBox)
         self.btnClear.grid(row = 6, column = 4, sticky = W+E+N)
 
         # control panel for image navigation
         self.ctrPanel = Frame(self.frame)
         self.ctrPanel.grid(row = 7, column = 1, columnspan = 4, sticky = W+E)
-        self.conv2YoloBtn = Button(self.ctrPanel, text='Convert YOLO', width = 15, command = self.convert2Yolo)
+        self.conv2YoloBtn = Button(self.ctrPanel, text='Convert YOLO',bg='#83C5BE',relief='flat', width = 15, command = self.convert2Yolo)
         self.conv2YoloBtn.pack(side = LEFT, padx = 5, pady = 3)
-        self.resetChkBtn = Button(self.ctrPanel, text='ResetCheckpoint', width = 15, command = self.resetCheckpoint)
+        self.resetChkBtn = Button(self.ctrPanel, text='ResetCheckpoint',bg='#C9ADA7',relief='flat', width = 15, command = self.resetCheckpoint)
         self.resetChkBtn.pack(side = LEFT, padx = 5, pady = 3)
-        self.loadChkBtn = Button(self.ctrPanel, text='LoadCheckpoint', width = 15, command = self.loadCheckpoint) 
+        self.loadChkBtn = Button(self.ctrPanel, text='LoadCheckpoint',bg='#C9ADA7',relief='flat', width = 15, command = self.loadCheckpoint) 
         self.loadChkBtn.pack(side = LEFT, padx = 5, pady = 3)
-        self.prevBtn = Button(self.ctrPanel, text='<< Prev', width = 10, command = self.prevImage)
+        self.prevBtn = Button(self.ctrPanel, text='<< Prev', width = 10,bg='#669BBC',relief='flat', command = self.prevImage)
         self.prevBtn.pack(side = LEFT, padx = 5, pady = 3)
-        self.skipBtn = Button(self.ctrPanel, text ='Skip', width = 10, command = self.skipImage)
+        self.skipBtn = Button(self.ctrPanel, text ='Skip', width = 10,bg='#f28482',relief='flat', command = self.skipImage)
         self.skipBtn.pack(side = LEFT, padx = 5, pady = 3)
-        self.nextBtn = Button(self.ctrPanel, text='Next >>', width = 10, command = self.nextImage)
+        self.nextBtn = Button(self.ctrPanel, text='Next >>', width = 10,bg='#669BBC',relief='flat', command = self.nextImage)
         self.nextBtn.pack(side = LEFT, padx = 5, pady = 3)
         self.progLabel = Label(self.ctrPanel, text = "Progress:     /    ")
         self.progLabel.pack(side = LEFT, padx = 5)
@@ -160,13 +160,13 @@ class LabelTool():
         self.tmpLabel.pack(side = LEFT, padx = 5)
         self.idxEntry = Entry(self.ctrPanel, width = 5)
         self.idxEntry.pack(side = LEFT)
-        self.goBtn = Button(self.ctrPanel, text = 'Go', command = self.gotoImage)
+        self.goBtn = Button(self.ctrPanel, text = 'Go',bg='#dde5b6',relief='ridge', command = self.gotoImage)
         self.goBtn.pack(side = LEFT)
 
         # example pannel for illustration
-        self.egPanel = Frame(self.frame, border = 10)
-        self.egPanel.grid(row = 1, column = 0, rowspan = 5, sticky = N)
-        self.tmpLabel2 = Label(self.egPanel, text = "Key Shortcut :\na : Prev\nd : Next\nr : Delete BB\nv : Paste Last BB\nRight Click : Delete BB\n1-9 : Select Class")
+        self.egPanel = Frame(self.frame, border = 10, highlightbackground='#D4CDCD',bg='#f0f0f0',highlightthickness=2,bd=2)
+        self.egPanel.grid(row = 1, column = 0, rowspan = 5, sticky = N, padx=5, pady=5)
+        self.tmpLabel2 = Label(self.egPanel, text = "Key Shortcut :\na : Prev\nd : Next\nr : Delete BB\nv : Paste Last BB\nb: Paste last BB from prev image\nRight Click : Delete BB\n1-9 : Select Class")
         self.tmpLabel2.pack(side = TOP)
         self.tmpLabel3 = Label(self.egPanel, text = "\nBasic Usage :\n1.Load Image\n2.Annotate\n3.Convert Yolo")
         self.tmpLabel3.pack(side = TOP)
@@ -181,6 +181,13 @@ class LabelTool():
 
         self.frame.columnconfigure(1, weight = 1)
         self.frame.rowconfigure(4, weight = 1)
+
+    #----------------------function to display no class --------------------------------
+    def display_no_class_message(self):
+        if not self.cla_can_temp:
+            messagebox.showwarning("Warning", "No classes available. Please create a class first.")
+            return
+    #------------------------------------------------------------------------------
 
     #Get BBox paste
     def getLastBboxSize(self):
@@ -207,7 +214,6 @@ class LabelTool():
             if not self.bboxList:
                 messagebox.showerror("Error", "No bounding boxes available to paste.")
                 return
-
             try:
                 # Refresh the canvas
                 self.mainPanel.update_idletasks()
@@ -242,30 +248,86 @@ class LabelTool():
 
             except Exception as e:
                 messagebox.showerror("Error", str(e))
+    #----------------------------------------------------------------Function to paste last bbox from previous list----------------------------------------------------------------
+    def pasteLastBboxFile(self, event):
+            if self.tkimg:
+                try:
+                    # Refresh the canvas
+                    self.mainPanel.update_idletasks()
 
+                    size = self.last_b_box
+                    if len(size) == 0:
+                        messagebox.showerror("Error", "No bounding boxes available to paste.")
+                        return
+
+                    # Calculate x, y coordinates
+                    x, y = self.mainPanel.canvasx(event.x), self.mainPanel.canvasy(event.y)
+
+                    # Check if bounding box is outside image boundaries
+                    if x < 0 or y < 0 or x + size[0] > self.tkimg.width() or y + size[1] > self.tkimg.height():
+                        messagebox.showwarning("Warning", "Bounding box cannot be drawn outside the image.")
+                        return
+
+                    x1, y1 = x, y
+                    x2, y2 = x1 + size[0], y1 + size[1]
+
+                    # Draw the bounding box
+                    self.bboxList.append((x1, y1, x2, y2, size[2]))
+                    idx_1 = self.get_class_index(size[2])
+                    tmpId = self.mainPanel.create_rectangle(int(x1), int(y1), int(x2), int(y2), width=2, outline=COLORS[idx_1])
+                    self.bboxIdList.append(tmpId)
+
+                    self.listbox.insert(END, '%s : (%d, %d) -> (%d, %d)' % (
+                        size[2], x1, y1, x2, y2))
+                    self.listbox.itemconfig(len(self.bboxIdList) - 1, fg=COLORS[idx_1])
+
+                    # Update the total bbox label
+                    self.totalBboxLabel.config(text='Total BBoxes: {}'.format(len(self.bboxList)))
+
+                except Exception as e:
+                    messagebox.showerror("Error", str(e))
 
       
 	# Add this function to the LabelTool class for adding a new class
     def addNewClass(self):
-        new_class = askstring("Add New Class", "Enter the name of the new class:")
-        if new_class:
-            if new_class in self.cla_can_temp:
-                messagebox.showwarning("Warning", f"Class '{new_class}' already exists!")
-            else:
-                with open(self.classcandidate_filename, 'a') as class_file:
-                    class_file.write(f"\n{new_class}")
+        if len(self.cla_can_temp) >= (len(COLORS)):
+            messagebox.showwarning("Warning", f"Class limit exceed!!")
+            return
+        else:
+            new_class = askstring("Add New Class", "Enter the name of the new class:")
+            if new_class:
+                if new_class in self.cla_can_temp:
+                    messagebox.showwarning("Warning", f"Class '{new_class}' already exists!")
+                else:
+                    if self.classcnt == 0:
+                        with open(self.classcandidate_filename, 'a') as class_file:
+                            class_file.write(f"{new_class}\n")
 
-                self.cla_can_temp.append(new_class)
-                self.classcnt += 1
-                self.classcandidate['values'] = self.cla_can_temp
-                self.classcandidate.current(self.classcnt - 1)
-                self.currentLabelclass = self.classcandidate.get()
-                self.index = int(self.classcnt-1)
-                messagebox.showinfo("Info", f"Class '{new_class}' added successfully!")
-                
+                        self.cla_can_temp.append(new_class)
+                        self.classcnt += 1
+                        self.classcandidate['values'] = self.cla_can_temp
+                        self.classcandidate.current(self.classcnt - 1)
+                        self.currentLabelclass = self.classcandidate.get()
+                        self.index = int(self.classcnt-1)
+                        messagebox.showinfo("Info", f"Class '{new_class}' added successfully!")
+                    else:
+                        with open(self.classcandidate_filename, 'a') as class_file:
+                            class_file.write(f"{new_class}\n")
+                        self.cla_can_temp.append(new_class)
+                        self.classcnt += 1
+                        self.classcandidate['values'] = self.cla_can_temp
+                        self.classcandidate.current(self.classcnt - 1)
+                        self.currentLabelclass = self.classcandidate.get()
+                        self.index = int(self.classcnt-1)
+                        messagebox.showinfo("Info", f"Class '{new_class}' added successfully!")        
+            self.mainPanel.focus_set() # focus
+
     # Add the deleteClass function
     def deleteClass(self):
-        selected_class = self.classcandidate.get()
+        if not self.cla_can_temp:
+            messagebox.showwarning("Warning", "No classes available!")
+            return
+        selected_class = self.classcandidate.get()  
         if selected_class:
             confirmation = messagebox.askyesno("Confirmation", f"Do you want to delete the class '{selected_class}'?")
             if confirmation:
@@ -281,11 +343,32 @@ class LabelTool():
                     self.currentLabelclass = self.classcandidate.get()
                 else:
                     self.currentLabelclass = ''
+                    self.classcandidate.set("No classes available")
+
             
                 messagebox.showinfo("Info", f"Class '{selected_class}' deleted successfully!")
+                # self.delete_lines_with_class(self.labelfilename,selected_class)
+                self.delete_bbox_by_class(selected_class)
+
         else:
             messagebox.showwarning("Warning", "No class selected!")
+        
+        self.mainPanel.focus_set() # focus
+    
+    def delete_bbox_by_class(self, deleted_class):
+        # Remove bounding boxes associated with the deleted class
+        indices_to_delete = []
+        for i in range(len(self.bboxList) - 1, -1, -1):
+            if self.bboxList[i][-1] == deleted_class:
+                # Remove the bounding box from the list and the canvas
+                indices_to_delete.append(i)
+                self.mainPanel.delete(self.bboxIdList[i])
+                del self.bboxIdList[i]
+                self.listbox.delete(i)
 
+        # Delete corresponding lines from self.bboxList
+        for index in indices_to_delete:
+            del self.bboxList[index]
 
     def get_class_index(self, class_name):
         try:
@@ -294,7 +377,7 @@ class LabelTool():
         except ValueError:
             print(f"Class '{class_name}' not found in the list.")
             return None
-
+################################################################################################
     #-----------------------Function For Load Directory--------------------------------
     def loadDir(self, dbg=False):
         self.imageList = []
@@ -313,6 +396,8 @@ class LabelTool():
             return
         self.cur = 1
         self.total = len(self.imageList)
+        if not os.path.exists('./Result'): # when system cannot find the Result path
+            os.mkdir('./Result')
         self.outDir = os.path.join(r'./Result', '%s' % (self.category))
         if not os.path.exists(self.outDir):
             os.mkdir(self.outDir)
@@ -322,19 +407,13 @@ class LabelTool():
     #----------------------------------------------------------------------------------------
 
     #--------------------Function to load Image From Directory--------------------------------
-    # def loadImage(self):
-    #     imagepath = self.imageList[self.cur - 1]
-    #     self.img = Image.open(imagepath)
-    #     self.tkimg = ImageTk.PhotoImage(self.img)
-
-    #     self.mainPanel.config(width=max(self.tkimg.width(), self.tkimg.width()), height=max(self.tkimg.height(), self.tkimg.height()))
-    #     self.mainPanel.create_image(0, 0, image=self.tkimg, anchor=NW)
-    #     self.progLabel.config(text="%04d/%04d" % (self.cur, self.total))
-    #     self.clearBBox()
-    #     self.imagename = os.path.split(imagepath)[-1]
-    #     labelname = self.imagename + '.txt'
-    #     self.labelfilename = os.path.join(self.outDir, labelname)
-    #     self.loadBBox()
+    def remove_substring(self,original_string):
+        substring_to_remove = '.jpg'
+        if substring_to_remove in original_string:
+            modified_string = original_string.replace(substring_to_remove, '')
+            return modified_string
+        else:
+            return original_string    
 
     def loadImage(self):
         
@@ -354,8 +433,6 @@ class LabelTool():
         new_mainPanel = Canvas(frame, cursor='tcross', width=1200, height=630,
                             scrollregion=(0, 0, self.tkimg.width(), self.tkimg.height()),
                             xscrollcommand=hbar.set, yscrollcommand=vbar.set)
-        
-        
 
         # Pack the scrollbars and canvas
         hbar.pack(side=BOTTOM, fill=X)
@@ -365,9 +442,7 @@ class LabelTool():
         # Configure the scrollbars to control the canvas
         hbar.config(command=new_mainPanel.xview)
         vbar.config(command=new_mainPanel.yview)
-
-        
-        
+  
 
         # Bind mouse wheel event to scroll function
         new_mainPanel.bind("<MouseWheel>", self.scrollCanvas)
@@ -379,8 +454,7 @@ class LabelTool():
         self.mainPanel.focus_set() #By calling focus_set() on a particular widget, you are designating that widget as the one that should receive keyboard events. 
 
         new_mainPanel.bind('v', self.pasteLastBbox) #press 'v' to get bbox of last drawn
-
-
+        new_mainPanel.bind('b', self.pasteLastBboxFile) #press 'b' to get bbox of last drawn from previous
 
         # Display the image on the canvas
         new_mainPanel.create_image(0, 0, image=self.tkimg, anchor=NW)
@@ -392,23 +466,15 @@ class LabelTool():
 
         # Set the image name and label file name
         self.imagename = os.path.split(imagepath)[-1]
-        labelname = self.imagename + '.txt'
+        labelname = self.remove_substring(self.imagename) + '.txt'
         self.labelfilename = os.path.join(self.outDir, labelname)   
-        
- 
-
-
 
         # Update the reference to mainPanel
         self.mainPanel = new_mainPanel
-
-        
-
+ 
         # Load existing bounding boxes
         self.loadBBox()
         self.totalBboxLabel.config(text='Total BBoxes: {}'.format(len(self.bboxList)))
-
-
 
         print("Image loaded successfully!")
 
@@ -433,27 +499,8 @@ class LabelTool():
         print('Image No. %d saved' %(self.cur))
     #------------------------------------------------------------------------------------------
 
-    #--------------------------------------Function to return x,y cooriantes while mouse click on mainPanel canvas--------------------------------
-    # def mouseClick(self, event):
-    #     if self.tkimg:
-
-    #         if event.num == 1:  # Left mouse button clicked
-    #             if self.STATE['click'] == 0:
-    #                 self.STATE['x'], self.STATE['y'] = event.x, event.y
-    #             else:
-    #                 x1, x2 = min(self.STATE['x'], event.x), max(self.STATE['x'], event.x)
-    #                 y1, y2 = min(self.STATE['y'], event.y), max(self.STATE['y'], event.y)
-    #                 self.bboxList.append((x1, y1, x2, y2, self.currentLabelclass))
-    #                 self.bboxIdList.append(self.bboxId)
-    #                 self.bboxId = None
-    #                 self.listbox.insert(END, '%s : (%d, %d) -> (%d, %d)' % (
-    #                     self.currentLabelclass, x1, y1, x2, y2))
-    #                 self.listbox.itemconfig(len(self.bboxIdList) - 1, fg=COLORS[self.index])#COLORS[(len(self.bboxIdList) - 1) % len(COLORS)])
-    #             self.STATE['click'] = 1 - self.STATE['click']
-    #         elif event.num == 3:  # Right mouse button clicked
-    #             self.removeBBox(event)
-
     def mouseClick(self, event):
+        self.display_no_class_message()
         
         if self.tkimg:
             x = self.mainPanel.canvasx(event.x)  # Adjust for scroll position
@@ -502,31 +549,9 @@ class LabelTool():
             
             self.totalBboxLabel.config(text='Total BBoxes: {}'.format(len(self.bboxList)))
 
-
-
-    #----------------------------------------------------------------------------------
-
-    #----------------------Functon to retrun x,y coordinates whicle moving mouse over mainPanel canvas--------------------
-    # def mouseMove(self, event):
-    #     if self.tkimg:
-
-    #         self.disp.config(text = 'x: %d, y: %d' %(event.x, event.y))
-    #         if self.tkimg:
-    #             if self.hl:
-    #                 self.mainPanel.delete(self.hl)
-    #             self.hl = self.mainPanel.create_line(0, event.y, self.tkimg.width(), event.y, width = 2)
-    #             if self.vl:
-    #                 self.mainPanel.delete(self.vl)
-    #             self.vl = self.mainPanel.create_line(event.x, 0, event.x, self.tkimg.height(), width = 2)
-    #         if 1 == self.STATE['click']:
-    #             if self.bboxId:
-    #                 self.mainPanel.delete(self.bboxId)
-    #             self.bboxId = self.mainPanel.create_rectangle(self.STATE['x'], self.STATE['y'], \
-    #                                                             event.x, event.y, \
-    #                                                             width = 2, \
-    #                                                             outline = COLORS[self.index])#COLORS[len(self.bboxList) % len(COLORS)])
-
     def mouseMove(self, event):
+        self.display_no_class_message()
+
         if self.tkimg:
             x = self.mainPanel.canvasx(event.x)  # Adjust for scroll position
             y = self.mainPanel.canvasy(event.y)  # Adjust for scroll position
@@ -547,10 +572,7 @@ class LabelTool():
                 self.index = self.get_class_index(self.currentLabelclass)
                 self.bboxId = self.mainPanel.create_rectangle(self.STATE['x'], self.STATE['y'], x, y, width=2,
                                                             outline=COLORS[self.index])
-        
-
-    
-
+   
     #--------------------------------------------------------------------------------------------------------------------------    
 
     #--------------------------Delete Selected BBox ------------------------
@@ -592,7 +614,86 @@ class LabelTool():
     #----------------------------------------------------------------
 
     #--------------------If we have drawn bbox previously then it will retrieve that bbox----------------------------------------------------------------
+    
+        # Add this function to the LabelTool class for adding a new class if it doesn't already exist
+    def addNewClass_(self, new_class):
+        if len(self.cla_can_temp) >= (len(COLORS)):
+            messagebox.showwarning("Warning", f"Class limit exceed!!")
+            return
+        else:
+            create_new_class = messagebox.askyesno("Found New Class", f"Do you want to add a new class '{new_class}'?")
+            if create_new_class:
+                if self.classcnt == 0:
+                    with open(self.classcandidate_filename, 'a') as class_file:
+                        class_file.write(f"{new_class}\n")
+
+                    self.cla_can_temp.append(new_class)
+                    self.classcnt += 1
+                    self.classcandidate['values'] = self.cla_can_temp
+                    self.classcandidate.current(self.classcnt - 1)
+                    self.currentLabelclass = self.classcandidate.get()
+                    self.index = int(self.classcnt-1)
+                    messagebox.showinfo("Info", f"Class '{new_class}' added successfully!")
+                else:
+                    with open(self.classcandidate_filename, 'a') as class_file:
+                        class_file.write(f"{new_class}\n")
+
+                    self.cla_can_temp.append(new_class)
+                    self.classcnt += 1
+                    self.classcandidate['values'] = self.cla_can_temp
+                    self.classcandidate.current(self.classcnt - 1)
+                    self.currentLabelclass = self.classcandidate.get()
+                    self.index = int(self.classcnt-1)
+                    messagebox.showinfo("Info", f"Class '{new_class}' added successfully!")
+            else:
+                # User chose not to create the new class, so delete lines with this class from the file
+                self.delete_lines_with_class(self.labelfilename, new_class)
+
+    def delete_lines_with_class(self, filename, class_name):
+        with open(filename, 'r') as file:
+            lines = file.readlines()
+
+        with open(filename, 'w') as file:
+            for line in lines:
+                if class_name not in line:
+                    file.write(line)
+    
+    def check_and_create_new_classes(self, class_list_from_file):
+        new_classes = set(class_list_from_file) - set(self.cla_can_temp)
+        if new_classes:
+            print(f"New classes found: {', '.join(new_classes)}")
+
+            for new_class in new_classes:
+                self.addNewClass_(new_class)
+            else:
+                print("No new classes created.")
+        else:
+            print("No new classes found.")
+            return None
+
+
+
+
+    def return_all_class_list_from_file(self):
+        class_list_from_file = []
+        if os.path.exists(self.labelfilename):
+            unique_classes = set()
+            with open(self.labelfilename) as f:
+                for (i, line) in enumerate(f):
+                    if i == 0:
+                        continue
+                    class_name = line.split()[-1]
+                    unique_classes.add(class_name)
+
+            class_list_from_file = list(unique_classes)
+
+        self.check_and_create_new_classes(class_list_from_file) #Function called to check if class exists or not
+
+                            
+                            
+
     def loadBBox(self):
+        self.return_all_class_list_from_file()
         # print("Loading bbox",COLORS[self.index])
 		
 		
@@ -616,9 +717,6 @@ class LabelTool():
                     self.listbox.insert(END, '%s : (%d, %d) -> (%d, %d)' %(tmp[4],int(float(tmp[0])), int(float(tmp[1])), \
                     												  int(float(tmp[2])), int(float(tmp[3]))))
                     self.listbox.itemconfig(len(self.bboxIdList) - 1, fg = COLORS[idx_1] )#COLORS[(len(self.bboxIdList) - 1) % len(COLORS)])
-
-
-
 
     
     #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -660,6 +758,8 @@ class LabelTool():
         self.saveImage()
         if self.cur < self.total:
             self.cur += 1
+            size = self.getLastBboxSize()
+            self.last_b_box = [size[0], size[1], size[2]] if size is not None else []
             self.loadImage()
         else:
             messagebox.showinfo("Info", "Already at the last image")
@@ -712,6 +812,8 @@ class LabelTool():
         if (self.category == ''):
             messagebox.showinfo("Error", "Please Annotate Image first")
         else:
+            if not os.path.exists('./RESULT_YOLO'):
+                os.makedirs('./RESULT_YOLO')
             outpath = "./Result_YOLO/" + self.category +'/'
             convert.Convert2Yolo(self.outDir+'/', outpath, self.category, self.cla_can_temp)
             messagebox.showinfo("Info", "YOLO data format conversion done")
