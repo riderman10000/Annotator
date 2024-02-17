@@ -1,6 +1,9 @@
-/__pycache__
+__pycache__
 __pycache__/**/*
+
+*.txt
 ./*.txt
 ./**/*.txt
 ./*.jpg
 /**/*.txt
+./**/*.JPG 

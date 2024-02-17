@@ -1,7 +1,0 @@
-
-./Images\Sample\2.png
-./Images\Sample\1.png
-./Images\Sample\2.png
-./Images\Sample\3.png
-./Images\Sample\dogcat.jpg
-./Images\Sample\2.png
