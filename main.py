@@ -12,7 +12,7 @@ from pathlib import Path
 from PIL import *
 
 FILE = Path(__file__).resolve()
-BASE_DIR = FILE.parents[0]  # PHARMA-R-D/ 
+BASE_DIR = FILE.parents[0]  
 
 # colors for the bboxes
 COLORS = ['red', 'blue', 'olive', 'teal', 'cyan', 'green', 'black', 'purple', 'orange', 'brown','crimson','yellow']
@@ -819,5 +819,8 @@ class LabelTool():
 if __name__ == '__main__':
     root = Tk()
     tool = LabelTool(root)
+    from gui import MenuBar
+    menu_bar = MenuBar(master=root, relief="flat", background="red", bd=3, bg="red")
+    root.config(menu=menu_bar)
     root.resizable(width =  True, height = True)
     root.mainloop()
