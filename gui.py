@@ -24,6 +24,31 @@ def inherit_signature_from(
     """
     return lambda x: x # type: ignore
 
+class LeftFrame(tk.Frame):
+    @inherit_signature_from(tk.Frame.__init__)
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+        self.load_directory_button = tk.Button(self, text="Open Image Directory", bg='#84a59d',relief='flat',command = self.load_directory_button_command)
+        self.load_image_directory = None 
+
+        # self.reset_checkpoint_button = tk.Button(self, text='ResetCheckpoint',bg='#C9ADA7',relief='flat', width = 15, command = self.reset_checkpoint_command)
+        self.reset_checkpoint = None 
+
+        self.place_widgets()
+
+    def place_widgets(self):
+        self.load_directory_button.grid(row=0, column=0, sticky=tk.W + tk.E, padx=5)
+
+    def load_directory_button_command(self, directory=None):
+        """
+        define your logic to load image directory
+        """
+        if self.load_image_directory:
+            self.load_image_directory()
+            return 
+        print('Left frame button condition not given')
+        ...
 
 class MenuBar(tk.Menu):
     # @inherit_signature_from(tk.Menu)
@@ -62,4 +87,5 @@ if __name__ == "__main__":
     root = tk.Tk() 
     menu_bar = MenuBar(master=root)
     root.config(menu=menu_bar)
+    left_frame = LeftFrame(root)
     root.mainloop()
