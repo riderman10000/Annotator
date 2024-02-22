@@ -108,7 +108,18 @@ class MenuBar(tk.Menu):
 
     def make_menu(self):
         self.add_cascade(menu=self.file_menu, label="File")
-        ...
+    
+    def button_method_assign_warning(function_name):
+        print('in button method')
+        def decorator(function):
+            def wrapper(*args, **kwargs):
+                try:
+                    function(*args, **kwargs)
+                except Exception as e:
+                    print(f'assign your method to Menu Bar Variable Name: {function_name}')
+            return wrapper
+        return decorator
+    ...
     
     def set_commands(self):
         self.file_menu.add_command(
@@ -116,15 +127,15 @@ class MenuBar(tk.Menu):
             accelerator="Ctrl+N",
             command=self.command_new_file
         )
+        self.new_file = None 
     
     def set_shortcuts(self):
         self.master.bind_all('<Control-n>', self.command_new_file)
         self.master.bind_all('<Control-N>', self.command_new_file)
 
+    @button_method_assign_warning('new_file')
     def command_new_file(self, event=None):
-        print('New file open')
-        print(event)
-
+        self.new_file()
         ...
 
 if __name__ == "__main__":
@@ -134,5 +145,4 @@ if __name__ == "__main__":
     left_frame = LeftFrame(root)
     left_frame.message = 'test'
     print(left_frame.message, LeftFrame.message)
-    left_frame.msg()
     root.mainloop()
