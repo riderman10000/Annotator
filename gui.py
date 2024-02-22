@@ -24,6 +24,65 @@ def inherit_signature_from(
     """
     return lambda x: x # type: ignore
 
+class MenuBar(tk.Menu):
+    @inherit_signature_from(tk.Menu.__init__)
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        
+        self.file_menu = tk.Menu(self, tearoff=False)
+        self.tools_menu = tk.Menu(self, tearoff=False)
+        # self.export_yolo_menu = tk.Menubutton(self.tools_menu)
+
+        self.make_menu()
+        self.set_option_commands()
+        self.set_shortcuts()
+
+    def make_menu(self):
+        self.add_cascade(menu=self.file_menu, label="File")
+        self.add_cascade(menu=self.tools_menu, label="Tools")
+        # self.tools_menu.add_cascade(menu=self.export_yolo_menu, label="Export Yolo")
+
+    def button_method_assign_warning(function_name):
+        print('in button method')
+        def decorator(function):
+            def wrapper(*args, **kwargs):
+                try:
+                    function(*args, **kwargs)
+                except Exception as e:
+                    print(f'assign your method to Menu Bar Variable Name: {function_name}')
+            return wrapper
+        return decorator
+    ...
+    
+    def set_option_commands(self):
+        self.file_menu.add_command(
+            label="New",
+            accelerator="Ctrl+N",
+            command=self.new_file_command
+        )
+        self.new_file = None 
+
+        self.tools_menu.add_command(
+            label="Export Yolo",
+            accelerator="Y",
+            command=self.export_yolo_command
+        )
+        self.export_yolo = None 
+
+    def set_shortcuts(self):
+        self.master.bind_all('<Control-n>', self.new_file_command)
+        self.master.bind_all('<Control-N>', self.new_file_command)
+
+    # file options commands 
+    @button_method_assign_warning('new_file')
+    def new_file_command(self, event=None):
+        self.new_file()
+
+    # tools options commands
+    @button_method_assign_warning('export_yolo')
+    def export_yolo_command(self, event=None):
+        self.export_yolo()
+
 class LeftFrame(tk.Frame):
     @inherit_signature_from(tk.Frame.__init__)
     def __init__(self, *args, **kwargs) -> None:
@@ -49,6 +108,7 @@ class LeftFrame(tk.Frame):
         self.next = None # assgin the actual statment to this variable
 
         self.place_widgets()
+        self.set_shortcuts()
 
     def place_widgets(self):
         self.load_directory_button.grid(row=0, column=0, sticky=tk.W + tk.E, padx=5, pady=1)
@@ -57,6 +117,11 @@ class LeftFrame(tk.Frame):
         self.previous_button.grid(row=3 , column=0, sticky=tk.W + tk.E, padx = 5, pady = 1)
         self.skip_button.grid(row=4 , column=0, sticky=tk.W + tk.E, padx = 5, pady = 1)
         self.next_button.grid(row=5 , column=0, sticky=tk.W + tk.E, padx = 5, pady = 1)        
+
+    def set_shortcuts(self):
+        self.master.bind_all('d', self.next_command)
+        self.master.bind_all('s', self.skip_command)
+        self.master.bind_all('a', self.previous_command)
 
     def button_method_assign_warning(function_name):
         print('in button method')
@@ -94,55 +159,26 @@ class LeftFrame(tk.Frame):
     def next_command(self):
         self.next()    
 
-class MenuBar(tk.Menu):
-    # @inherit_signature_from(tk.Menu)
-    @inherit_signature_from(tk.Menu.__init__)
+
+class CenterFrame(tk.Frame):
+    @inherit_signature_from(tk.Frame.__init__)
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        
-        self.file_menu = tk.Menu(self, tearoff=False)
-        
-        self.make_menu()
-        self.set_commands()
-        self.set_shortcuts()
 
-    def make_menu(self):
-        self.add_cascade(menu=self.file_menu, label="File")
-    
-    def button_method_assign_warning(function_name):
-        print('in button method')
-        def decorator(function):
-            def wrapper(*args, **kwargs):
-                try:
-                    function(*args, **kwargs)
-                except Exception as e:
-                    print(f'assign your method to Menu Bar Variable Name: {function_name}')
-            return wrapper
-        return decorator
-    ...
-    
-    def set_commands(self):
-        self.file_menu.add_command(
-            label="New",
-            accelerator="Ctrl+N",
-            command=self.command_new_file
-        )
-        self.new_file = None 
-    
-    def set_shortcuts(self):
-        self.master.bind_all('<Control-n>', self.command_new_file)
-        self.master.bind_all('<Control-N>', self.command_new_file)
+        self.horizontal_bar = tk.Scrollbar(self, orient='horizontal')
+        self.vertical_bar = tk.Scrollbar(self, orient='vertical')
 
-    @button_method_assign_warning('new_file')
-    def command_new_file(self, event=None):
-        self.new_file()
-        ...
+        self.image_canvas = tk.Canvas(self, cursor='tcross', width=1200, height=630,
+            # scrollregion=(0, 0 , self.),
+            xscrollcommand=self.horizontal_bar.set, yscrollcommand=self.vertical_bar.set)
+
+    # def place_widgets(my):
+    #     my.horizontal_bar
+
 
 if __name__ == "__main__":
     root = tk.Tk() 
     menu_bar = MenuBar(master=root)
     root.config(menu=menu_bar)
     left_frame = LeftFrame(root)
-    left_frame.message = 'test'
-    print(left_frame.message, LeftFrame.message)
     root.mainloop()
