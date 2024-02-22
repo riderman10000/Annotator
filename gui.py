@@ -89,22 +89,22 @@ class LeftFrame(tk.Frame):
         super().__init__(*args, **kwargs)
 
 
-        self.load_directory_button = tk.Button(self.master, text="Open Image Directory", bg='#84a59d',relief='flat',command = self.load_directory_button_command)
+        self.load_directory_button = tk.Button(self, text="Open Image Directory", bg='#84a59d',relief='flat',command = self.load_directory_button_command)
         self.load_image_directory = None  # assgin the actual statment to this variable
 
-        self.reset_checkpoint_button = tk.Button(self.master, text='Reset Checkpoint',bg='#C9ADA7',relief='flat', command = self.reset_checkpoint_command)
+        self.reset_checkpoint_button = tk.Button(self, text='Reset Checkpoint',bg='#C9ADA7',relief='flat', command = self.reset_checkpoint_command)
         self.reset_checkpoint = None # assgin the actual statment to this variable
 
-        self.load_checkpoint_button = tk.Button(self.master, text='Load Checkpoint',bg='#C9ADA7',relief='flat', command = self.load_checkpoint_command) 
+        self.load_checkpoint_button = tk.Button(self, text='Load Checkpoint',bg='#C9ADA7',relief='flat', command = self.load_checkpoint_command) 
         self.load_checkpoint = None # assgin the actual statment to this variable
         
-        self.previous_button = tk.Button(self.master, text='<< Prev', width = 10,bg='#669BBC',relief='flat', command = self.previous_command)
+        self.previous_button = tk.Button(self, text='<< Prev', width = 10,bg='#669BBC',relief='flat', command = self.previous_command)
         self.previous = None # assgin the actual statment to this variable
 
-        self.skip_button = tk.Button(self.master, text ='Skip', width = 10,bg='#f28482',relief='flat', command = self.skip_command)
+        self.skip_button = tk.Button(self, text ='Skip', width = 10,bg='#f28482',relief='flat', command = self.skip_command)
         self.skip = None # assgin the actual statment to this variable
 
-        self.next_button = tk.Button(self.master, text='Next >>', width = 10,bg='#669BBC',relief='flat', command = self.next_command)
+        self.next_button = tk.Button(self, text='Next >>', width = 10,bg='#669BBC',relief='flat', command = self.next_command)
         self.next = None # assgin the actual statment to this variable
 
         self.place_widgets()
@@ -164,17 +164,59 @@ class CenterFrame(tk.Frame):
     @inherit_signature_from(tk.Frame.__init__)
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-
         self.horizontal_bar = tk.Scrollbar(self, orient='horizontal')
         self.vertical_bar = tk.Scrollbar(self, orient='vertical')
 
-        self.image_canvas = tk.Canvas(self, cursor='tcross', width=1200, height=630,
-            # scrollregion=(0, 0 , self.),
-            xscrollcommand=self.horizontal_bar.set, yscrollcommand=self.vertical_bar.set)
+        self.image_canvas = tk.Canvas(self, cursor='tcross', width=800, height=630,
+            scrollregion=(0, 0 , 2000, 2000),
+            xscrollcommand=self.horizontal_bar.set, yscrollcommand=self.vertical_bar.set,
+            highlightbackground="black", highlightthickness=2)
 
-    # def place_widgets(my):
-    #     my.horizontal_bar
+        self.left = None 
+        self.right = None 
+        self.up = None 
+        self.down = None 
 
+        self.place_widgets()
+        self.set_shortcuts()
+
+    def place_widgets(self):
+        self.vertical_bar.pack(side=tk.RIGHT, anchor=tk.NE, fill=tk.Y, expand=tk.TRUE)
+        self.horizontal_bar.pack(side=tk.BOTTOM, anchor=tk.S, fill=tk.X)
+        self.image_canvas.pack(side=tk.TOP, anchor=tk.NW, expand=tk.YES, fill=tk.BOTH)
+
+    def set_shortcuts(self):
+        self.master.bind_all('<Left>', self.left_command)
+        self.master.bind_all('<Right>', self.right_command)
+        self.master.bind_all('<Up>', self.up_command)
+        self.master.bind_all('<Down>', self.down_command)
+
+    def button_method_assign_warning(function_name):
+        print('in button method')
+        def decorator(function):
+            def wrapper(*args, **kwargs):
+                try:
+                    function(*args, **kwargs)
+                except Exception as e:
+                    print(f'assign your method to Left Frame Variable Name: {function_name}')
+            return wrapper
+        return decorator
+    
+    @button_method_assign_warning('up')
+    def up_command(self):
+        self.up()
+    
+    @button_method_assign_warning('down')
+    def down_command(self):
+        self.down()
+    
+    @button_method_assign_warning('left')
+    def left_command(self):
+        self.left()
+    
+    @button_method_assign_warning('right')
+    def right_command(self):
+        self.right()
 
 if __name__ == "__main__":
     root = tk.Tk() 
