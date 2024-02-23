@@ -179,6 +179,10 @@ class CenterFrame(tk.Frame):
 
         self.load_image = None 
 
+        self.mouse_right_click = None 
+        self.mouse_left_click = None 
+        self.mouse_moved = None 
+
         self.place_widgets()
         self.set_shortcuts()
 
@@ -188,10 +192,16 @@ class CenterFrame(tk.Frame):
         self.image_canvas.pack(side=tk.TOP, anchor=tk.NW, expand=tk.YES, fill=tk.BOTH)
 
     def set_shortcuts(self):
-        self.master.bind_all('<Left>', self.left_command)
-        self.master.bind_all('<Right>', self.right_command)
-        self.master.bind_all('<Up>', self.up_command)
-        self.master.bind_all('<Down>', self.down_command)
+        # keys 
+        self.image_canvas.bind_all('<Left>', self.left_command)
+        self.image_canvas.bind_all('<Right>', self.right_command)
+        self.image_canvas.bind_all('<Up>', self.up_command)
+        self.image_canvas.bind_all('<Down>', self.down_command)
+        
+        # mouse 
+        self.image_canvas.bind_all('<Button-1>', self.mouse_left_click_command)
+        self.image_canvas.bind_all('<Button-3>', self.mouse_right_click_command)
+        self.image_canvas.bind_all('<Motion>', self.mouse_moved_command)
 
     def button_method_assign_warning(function_name):
         print('in button method')
@@ -200,7 +210,7 @@ class CenterFrame(tk.Frame):
                 try:
                     function(*args, **kwargs)
                 except Exception as e:
-                    print(f'assign your method to Left Frame Variable Name: {function_name}')
+                    print(f'assign your method to Central Frame Variable Name: {function_name}')
             return wrapper
         return decorator
     
@@ -223,6 +233,23 @@ class CenterFrame(tk.Frame):
     @button_method_assign_warning('load_image')
     def load_image_command(self):
         self.load_image()
+
+    @button_method_assign_warning('mouse_left_click')
+    def mouse_left_click_command(self):
+        self.mouse_left_click()
+
+    @button_method_assign_warning('mouse_right_click')
+    def mouse_right_click_command(self):
+        self.mouse_right_click()
+
+    @button_method_assign_warning('mouse_moved')
+    def mouse_moved_command(self, event):
+        x = self.image_canvas.canvasx(event.x)
+        y = self.image_canvas.canvasy(event.y)
+        print(f'event : x - {x}, y - {y}')
+        self.mouse_moved(x, y)
+    
+    
 
 if __name__ == "__main__":
     root = tk.Tk() 
