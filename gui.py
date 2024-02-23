@@ -177,6 +177,8 @@ class CenterFrame(tk.Frame):
         self.up = None 
         self.down = None 
 
+        self.load_image = None 
+
         self.place_widgets()
         self.set_shortcuts()
 
@@ -217,6 +219,10 @@ class CenterFrame(tk.Frame):
     @button_method_assign_warning('right')
     def right_command(self):
         self.right()
+
+    @button_method_assign_warning('load_image')
+    def load_image_command(self):
+        self.load_image()
 
 if __name__ == "__main__":
     root = tk.Tk() 
