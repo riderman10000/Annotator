@@ -1,9 +1,12 @@
-from _tkinter import Tcl_Obj
-from tkinter import Misc
+# from _tkinter import Tcl_Obj
+# from tkinter import Misc
 from typing import Callable, Any, TypeVar, Optional
 from typing_extensions import ParamSpec
 
 import tkinter as tk
+from tkinter import ttk
+
+from PIL import Image, ImageTk
 
 P = ParamSpec('P')
 T = TypeVar('T')
@@ -164,13 +167,24 @@ class CenterFrame(tk.Frame):
     @inherit_signature_from(tk.Frame.__init__)
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
+        self.widgetName = "CenterFrame"
         self.horizontal_bar = tk.Scrollbar(self, orient='horizontal')
         self.vertical_bar = tk.Scrollbar(self, orient='vertical')
 
+        self.width = 2000
+        self.height = 2000
+
+        self.image = Image.new('RGB', (self.width, self.height), color=(0, 255, 0))
+        self.tk_canvas_image = ImageTk.PhotoImage(self.image)
+
         self.image_canvas = tk.Canvas(self, cursor='tcross', width=800, height=630,
-            scrollregion=(0, 0 , 2000, 2000),
+            scrollregion=(0, 0 , self.tk_canvas_image.width(), self.tk_canvas_image.height()),
             xscrollcommand=self.horizontal_bar.set, yscrollcommand=self.vertical_bar.set,
             highlightbackground="black", highlightthickness=2)
+        self.image_canvas.widgetName = "image_canvas"
+
+        self.horizontal_bar.config(command=self.image_canvas.xview)
+        self.vertical_bar.config(command=self.image_canvas.yview)
 
         self.left = None 
         self.right = None 
@@ -179,9 +193,20 @@ class CenterFrame(tk.Frame):
 
         self.load_image = None 
 
-        self.mouse_right_click = None 
-        self.mouse_left_click = None 
+        self.mouse_left_pressed = None 
+        self.mouse_left_released = None 
+
+        self.mouse_right_pressed = None 
+        self.mouse_right_released = None 
+        
         self.mouse_moved = None 
+
+        self.mouse_events = {
+            'left_button_down': False,
+            'left_button_up': False,
+            'right_button_down': False,
+            'right_button_up': False,
+        }
 
         self.place_widgets()
         self.set_shortcuts()
@@ -199,8 +224,12 @@ class CenterFrame(tk.Frame):
         self.image_canvas.bind_all('<Down>', self.down_command)
         
         # mouse 
-        self.image_canvas.bind_all('<Button-1>', self.mouse_left_click_command)
-        self.image_canvas.bind_all('<Button-3>', self.mouse_right_click_command)
+        self.image_canvas.bind_all('<ButtonPress-1>', self.mouse_left_pressed_command)
+        self.image_canvas.bind_all('<ButtonRelease-1>', self.mouse_left_released_command)
+        
+        self.image_canvas.bind_all('<ButtonPress-3>', self.mouse_right_pressed_command)
+        self.image_canvas.bind_all('<ButtonRelease-3>', self.mouse_right_released_command)
+        
         self.image_canvas.bind_all('<Motion>', self.mouse_moved_command)
 
     def button_method_assign_warning(function_name):
@@ -210,7 +239,7 @@ class CenterFrame(tk.Frame):
                 try:
                     function(*args, **kwargs)
                 except Exception as e:
-                    print(f'assign your method to Central Frame Variable Name: {function_name}')
+                    print(f'assign your method to Central Frame Variable Name: {function_name}, error: {e}')
             return wrapper
         return decorator
     
@@ -230,25 +259,131 @@ class CenterFrame(tk.Frame):
     def right_command(self):
         self.right()
 
-    @button_method_assign_warning('load_image')
-    def load_image_command(self):
-        self.load_image()
+    @button_method_assign_warning('mouse_left_pressed')
+    def mouse_left_pressed_command(self, event):
+        widget_name = 'image_canvas'
+        if event.widget.widgetName == widget_name: # will track this frame's mouse movement only
+            print(f'{event}')
+            self.mouse_left_pressed()
 
-    @button_method_assign_warning('mouse_left_click')
-    def mouse_left_click_command(self):
-        self.mouse_left_click()
+    @button_method_assign_warning('mouse_left_released')
+    def mouse_left_released_command(self, event):
+        widget_name = 'image_canvas'
+        if event.widget.widgetName == widget_name: # will track this frame's mouse movement only
+            print(f'{event}')
+            self.mouse_left_released()
+    
+    @button_method_assign_warning('mouse_right_pressed')
+    def mouse_right_pressed_command(self, event):
+        widget_name = 'image_canvas'
+        if event.widget.widgetName == widget_name: # will track this frame's mouse movement only
+            print(f'{event}')
+            self.mouse_right_pressed()
 
-    @button_method_assign_warning('mouse_right_click')
-    def mouse_right_click_command(self):
-        self.mouse_right_click()
+    @button_method_assign_warning('mouse_right_released')
+    def mouse_right_released_command(self, event):
+        widget_name = 'image_canvas'
+        if event.widget.widgetName == widget_name: # will track this frame's mouse movement only
+            print(f'{event}')
+            self.mouse_right_released()
 
     @button_method_assign_warning('mouse_moved')
-    def mouse_moved_command(self, event):
-        x = self.image_canvas.canvasx(event.x)
-        y = self.image_canvas.canvasy(event.y)
-        print(f'event : x - {x}, y - {y}')
-        self.mouse_moved(x, y)
+    def mouse_moved_command(self, event: tk.Event):
+        widget_name = 'image_canvas'
+        if event.widget.widgetName == widget_name: # will track this frame's mouse movement only
+            x = self.image_canvas.canvasx(event.x)
+            y = self.image_canvas.canvasy(event.y)
+            overlapping = self.image_canvas.find_overlapping(x, y, x+1, y+1)
+            print('overlaaping', overlapping)
+            self.mouse_moved(x, y)
+        
+    def load_image(self, image):
+        self.image = Image.new('RGB', (self.width, self.height))
+        self.tk_canvas_image = ImageTk.PhotoImage(self.image)
+        self.image_canvas.config(
+            scrollregion=(0, 0, self.tk_canvas_image.width(), self.tk_canvas_image.height())
+        )
+        self.image_canvas.create_image(0, 0, image=self.tk_canvas_image, anchor=tk.NW)
+
+class RightFrame(tk.Frame):
+    @inherit_signature_from(tk.Frame.__init__)
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.class_name = tk.StringVar()
+        
+        self.current_class_label = tk.Label(self, text='Select Object Class')
+        self.current_class_combobox = ttk.Combobox(self, state='readonly', textvariable=self.class_name)
+        self.add_class_button = tk.Button(self, text='Add Class', bg='#4cc9f0',fg = 'white',relief='raised',command=self.add_class_command)
+        self.add_class = None 
+
+        self.delete_class_button = tk.Button(self, text='Delete Class', bg='#f28482',fg = 'white',relief='raised',command=self.delete_class_command)
+        self.delete_class = None 
+
+        self.bbox_list_frame = tk.Frame(self)
+        self.bbox_list_frame_label = tk.Label(self.bbox_list_frame, text='Bounding Box List')
+        self.bbox_list_box = tk.Listbox(self.bbox_list_frame, width=40, height=12)
+        
+        self.clear_bbox_button = tk.Button(self, text = 'Clear', bg='#c1121f',fg = 'white',relief='groove',command = self.clear_bbox_command)
+        self.clear_bbox = None 
+        
+        self.clear_all_bbox_button = tk.Button(self, text = 'ClearAll',bg='#c1121f',fg = 'white',relief='groove', command = self.clear_all_bbox_command)
+        self.clear_all_bbox = None 
+
+        self.file_list_frame = tk.Frame(self)
+        self.file_list_frame_label = tk.Label(self.file_list_frame, text='File List')
+        self.file_list_list_box = tk.Listbox(self.file_list_frame, width=40, height=12)
+
+        self.place_widgets()
+
+    def place_widgets(self):
+        self.current_class_label.grid(row=0, column=0, columnspan=2, sticky=tk.W + tk.E)
+        self.current_class_combobox.grid(row=1, column=0, columnspan=2, sticky=tk.W + tk.E)
+        self.add_class_button.grid(row=2, column=0, sticky=tk.W + tk.E)
+        self.delete_class_button.grid(row=2, column=1, sticky=tk.W + tk.E)
+        self.bbox_list_frame.grid(row=3, column=0, columnspan=2, sticky=tk.W + tk.E)
+        self.bbox_list_frame_label.grid(row=0, column=0)
+        self.bbox_list_box.grid(row=1, column=0)
+
+        self.clear_bbox_button.grid(row=7, column=0, columnspan=2, sticky=tk.W + tk.E)
+        self.clear_all_bbox_button.grid(row=7, column=0,columnspan=2, sticky=tk.E + tk.W)
+        
+        self.file_list_frame.grid(row=9, column=0, columnspan=2, sticky=tk.W + tk.E)
+        self.file_list_frame_label.grid(row=0, column=0)
+        self.file_list_list_box.grid(row=1, column=0)
+
+        # self.file_list_list_box.grid(row=8, column=0, columnspan=2, sticky=tk.W + tk.E)
+        ...
+
+    def button_method_assign_warning(function_name):
+        print('in button method')
+        def decorator(function):
+            def wrapper(*args, **kwargs):
+                try:
+                    function(*args, **kwargs)
+                except Exception as e:
+                    print(f'assign your method to Right Frame Variable Name: {function_name}')
+            return wrapper
+        return decorator
     
+    @button_method_assign_warning('add_class')
+    def add_class_command(self, event):
+        print(f'{event}')
+        self.add_class()
+
+    @button_method_assign_warning('delete_class')
+    def delete_class_command(self, event):
+        print(f'{event}')
+        self.delete_class()
+
+    @button_method_assign_warning('clear_bbox')
+    def clear_bbox_command(self):
+        self.clear_bbox()
+
+    @button_method_assign_warning('clear_all_bbox')
+    def clear_all_bbox_command(self):
+        self.clear_all_bbox()
+
+class BottomFrame(tk.Frame):
     
 
 if __name__ == "__main__":
