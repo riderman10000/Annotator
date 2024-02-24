@@ -27,6 +27,15 @@ def inherit_signature_from(
     """
     return lambda x: x # type: ignore
 
+share_info = {
+    'x':0,
+    'y':0,
+}
+
+class shared_data:
+    x = 0
+    y = 0 
+
 class MenuBar(tk.Menu):
     @inherit_signature_from(tk.Menu.__init__)
     def __init__(self, *args, **kwargs) -> None:
@@ -177,7 +186,7 @@ class CenterFrame(tk.Frame):
         self.image = Image.new('RGB', (self.width, self.height), color=(0, 255, 0))
         self.tk_canvas_image = ImageTk.PhotoImage(self.image)
 
-        self.image_canvas = tk.Canvas(self, cursor='tcross', width=800, height=630,
+        self.image_canvas = tk.Canvas(self, cursor='tcross', width=1000, height=630,
             scrollregion=(0, 0 , self.tk_canvas_image.width(), self.tk_canvas_image.height()),
             xscrollcommand=self.horizontal_bar.set, yscrollcommand=self.vertical_bar.set,
             highlightbackground="black", highlightthickness=2)
@@ -309,8 +318,8 @@ class RightFrame(tk.Frame):
     @inherit_signature_from(tk.Frame.__init__)
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.class_name = tk.StringVar()
         
+        self.class_name = tk.StringVar()
         self.current_class_label = tk.Label(self, text='Select Object Class')
         self.current_class_combobox = ttk.Combobox(self, state='readonly', textvariable=self.class_name)
         self.add_class_button = tk.Button(self, text='Add Class', bg='#4cc9f0',fg = 'white',relief='raised',command=self.add_class_command)
@@ -384,7 +393,23 @@ class RightFrame(tk.Frame):
         self.clear_all_bbox()
 
 class BottomFrame(tk.Frame):
-    
+    @inherit_signature_from(tk.Frame.__init__)
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+        self.go_entry = tk.Button(self, text = 'Go',bg='#dde5b6',relief='ridge', command = self.gotoImage)
+        self.go_to_image_label = tk.Label(self, text = "Go to Image No.")
+        self.image_number_entry = tk.Entry(self, width = 5)
+        self.progress_label = tk.Label(self, text = "Progress:     /    ")
+        self.mouse_position_label = tk.Label(self, text='x: 0, y: 0')        
+
+    def place_widgets(self):
+        self.mouse_position_label.pack(side=tk.RIGHT)
+        self.go_entry.pack(side=tk.RIGHT)
+        self.image_number_entry.pack(side=tk.RIGHT)
+        self.go_to_image_label.pack(side=tk.RIGHT)
+        self.progress_label.pack(side=tk.RIGHT)
+        ...
 
 if __name__ == "__main__":
     root = tk.Tk() 
