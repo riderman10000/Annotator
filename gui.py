@@ -34,7 +34,7 @@ share_info = {
 
 class shared_data:
     x = 0
-    y = 0 
+    y = 0
 
 class MenuBar(tk.Menu):
     @inherit_signature_from(tk.Menu.__init__)
@@ -172,7 +172,33 @@ class LeftFrame(tk.Frame):
         self.next()    
 
 
-class CenterFrame(tk.Frame):
+class BottomFrame(tk.Frame):
+    @inherit_signature_from(tk.Frame.__init__)
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+        try :
+            master = self.master.master
+        except Exception as e :
+            master = self 
+
+        self.go_entry = tk.Button(master, text = 'Go',bg='#dde5b6',relief='ridge') # , command = self.gotoImage)
+        self.go_to_image_label = tk.Label(master, text = "Go to Image No.")
+        self.image_number_entry = tk.Entry(master, width = 5)
+        self.progress_label = tk.Label(master, text = "Progress:     /    ")
+        self.mouse_position_label = tk.Label(master, text='x: 0, y: 0')        
+
+        self.place_widgets()
+
+    def place_widgets(self):
+        self.mouse_position_label.pack(side=tk.RIGHT)
+        self.go_entry.pack(side=tk.RIGHT)
+        self.image_number_entry.pack(side=tk.RIGHT)
+        self.go_to_image_label.pack(side=tk.RIGHT)
+        self.progress_label.pack(side=tk.RIGHT)
+        ...
+
+class CenterFrame(BottomFrame):
     @inherit_signature_from(tk.Frame.__init__)
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -217,10 +243,10 @@ class CenterFrame(tk.Frame):
             'right_button_up': False,
         }
 
-        self.place_widgets()
+        self.place_widgets_center()
         self.set_shortcuts()
 
-    def place_widgets(self):
+    def place_widgets_center(self):
         self.vertical_bar.pack(side=tk.RIGHT, anchor=tk.NE, fill=tk.Y, expand=tk.TRUE)
         self.horizontal_bar.pack(side=tk.BOTTOM, anchor=tk.S, fill=tk.X)
         self.image_canvas.pack(side=tk.TOP, anchor=tk.NW, expand=tk.YES, fill=tk.BOTH)
@@ -304,6 +330,7 @@ class CenterFrame(tk.Frame):
             y = self.image_canvas.canvasy(event.y)
             overlapping = self.image_canvas.find_overlapping(x, y, x+1, y+1)
             print('overlaaping', overlapping)
+            self.mouse_position_label.config(text=f'x: {x}, y: {y}')
             self.mouse_moved(x, y)
         
     def load_image(self, image):
@@ -392,24 +419,6 @@ class RightFrame(tk.Frame):
     def clear_all_bbox_command(self):
         self.clear_all_bbox()
 
-class BottomFrame(tk.Frame):
-    @inherit_signature_from(tk.Frame.__init__)
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-
-        self.go_entry = tk.Button(self, text = 'Go',bg='#dde5b6',relief='ridge', command = self.gotoImage)
-        self.go_to_image_label = tk.Label(self, text = "Go to Image No.")
-        self.image_number_entry = tk.Entry(self, width = 5)
-        self.progress_label = tk.Label(self, text = "Progress:     /    ")
-        self.mouse_position_label = tk.Label(self, text='x: 0, y: 0')        
-
-    def place_widgets(self):
-        self.mouse_position_label.pack(side=tk.RIGHT)
-        self.go_entry.pack(side=tk.RIGHT)
-        self.image_number_entry.pack(side=tk.RIGHT)
-        self.go_to_image_label.pack(side=tk.RIGHT)
-        self.progress_label.pack(side=tk.RIGHT)
-        ...
 
 if __name__ == "__main__":
     root = tk.Tk() 
