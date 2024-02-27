@@ -55,7 +55,6 @@ class MenuBar(tk.Menu):
         # self.tools_menu.add_cascade(menu=self.export_yolo_menu, label="Export Yolo")
 
     def button_method_assign_warning(function_name):
-        print('in button method')
         def decorator(function):
             def wrapper(*args, **kwargs):
                 try:
@@ -136,13 +135,14 @@ class LeftFrame(tk.Frame):
         self.master.bind_all('a', self.previous_command)
 
     def button_method_assign_warning(function_name):
-        print('in button method')
         def decorator(function):
             def wrapper(*args, **kwargs):
+                function(*args, **kwargs)
+                
                 try:
                     function(*args, **kwargs)
                 except Exception as e:
-                    print(f'assign your method to Left Frame Variable Name: {function_name}')
+                    print(f'assign your method to Left Frame Variable Name: {function_name}', e)
             return wrapper
         return decorator
 
@@ -226,8 +226,6 @@ class CenterFrame(BottomFrame):
         self.up = None 
         self.down = None 
 
-        self.load_image = None 
-
         self.mouse_left_pressed = None 
         self.mouse_left_released = None 
 
@@ -268,7 +266,6 @@ class CenterFrame(BottomFrame):
         self.image_canvas.bind_all('<Motion>', self.mouse_moved_command)
 
     def button_method_assign_warning(function_name):
-        print('in button method')
         def decorator(function):
             def wrapper(*args, **kwargs):
                 try:
@@ -333,13 +330,20 @@ class CenterFrame(BottomFrame):
             self.mouse_position_label.config(text=f'x: {x}, y: {y}')
             self.mouse_moved(x, y)
         
-    def load_image(self, image):
-        self.image = Image.new('RGB', (self.width, self.height))
+    def load_image(self, image: Image = None):
+        if type(None) == type(image):
+            self.image = Image.new('RGB', (self.width, self.height))
+        else:
+            self.image = image
+        
         self.tk_canvas_image = ImageTk.PhotoImage(self.image)
         self.image_canvas.config(
             scrollregion=(0, 0, self.tk_canvas_image.width(), self.tk_canvas_image.height())
         )
         self.image_canvas.create_image(0, 0, image=self.tk_canvas_image, anchor=tk.NW)
+
+        # self.progress_label.config(text=f'')
+
 
 class RightFrame(tk.Frame):
     @inherit_signature_from(tk.Frame.__init__)
@@ -391,7 +395,6 @@ class RightFrame(tk.Frame):
         ...
 
     def button_method_assign_warning(function_name):
-        print('in button method')
         def decorator(function):
             def wrapper(*args, **kwargs):
                 try:
