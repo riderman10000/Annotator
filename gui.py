@@ -136,9 +136,7 @@ class LeftFrame(tk.Frame):
 
     def button_method_assign_warning(function_name):
         def decorator(function):
-            def wrapper(*args, **kwargs):
-                function(*args, **kwargs)
-                
+            def wrapper(*args, **kwargs):                
                 try:
                     function(*args, **kwargs)
                 except Exception as e:
@@ -147,7 +145,7 @@ class LeftFrame(tk.Frame):
         return decorator
 
     @button_method_assign_warning('load_image_directory')
-    def load_directory_button_command(self, file_name: str = "chhabi"):
+    def load_directory_button_command(self):
         self.load_image_directory()
         ...
 
@@ -160,7 +158,7 @@ class LeftFrame(tk.Frame):
         self.load_checkpoint()
     
     @button_method_assign_warning('previous')
-    def previous_command(self):
+    def previous_command(self, event = None):
         self.previous()
         
     @button_method_assign_warning('skip')
@@ -168,7 +166,7 @@ class LeftFrame(tk.Frame):
         self.skip()
     
     @button_method_assign_warning('next')
-    def next_command(self):
+    def next_command(self, event = None):
         self.next()    
 
 
@@ -296,28 +294,36 @@ class CenterFrame(BottomFrame):
         widget_name = 'image_canvas'
         if event.widget.widgetName == widget_name: # will track this frame's mouse movement only
             print(f'{event}')
-            self.mouse_left_pressed()
+            x = self.image_canvas.canvasx(event.x)
+            y = self.image_canvas.canvasy(event.y)
+            self.mouse_left_pressed(x, y)
 
     @button_method_assign_warning('mouse_left_released')
     def mouse_left_released_command(self, event):
         widget_name = 'image_canvas'
         if event.widget.widgetName == widget_name: # will track this frame's mouse movement only
             print(f'{event}')
-            self.mouse_left_released()
+            x = self.image_canvas.canvasx(event.x)
+            y = self.image_canvas.canvasy(event.y)
+            self.mouse_left_released(x, y)
     
     @button_method_assign_warning('mouse_right_pressed')
     def mouse_right_pressed_command(self, event):
         widget_name = 'image_canvas'
         if event.widget.widgetName == widget_name: # will track this frame's mouse movement only
             print(f'{event}')
-            self.mouse_right_pressed()
+            x = self.image_canvas.canvasx(event.x)
+            y = self.image_canvas.canvasy(event.y)
+            self.mouse_right_pressed(x, y)
 
     @button_method_assign_warning('mouse_right_released')
     def mouse_right_released_command(self, event):
         widget_name = 'image_canvas'
         if event.widget.widgetName == widget_name: # will track this frame's mouse movement only
             print(f'{event}')
-            self.mouse_right_released()
+            x = self.image_canvas.canvasx(event.x)
+            y = self.image_canvas.canvasy(event.y)
+            self.mouse_right_released(x, y)
 
     @button_method_assign_warning('mouse_moved')
     def mouse_moved_command(self, event: tk.Event):
@@ -343,6 +349,16 @@ class CenterFrame(BottomFrame):
         self.image_canvas.create_image(0, 0, image=self.tk_canvas_image, anchor=tk.NW)
 
         # self.progress_label.config(text=f'')
+    def create_rectangle(self, x1, y1, x2, y2, width = 1, outline='red'):
+        rectangle_id = self.image_canvas.create_rectangle(x1, y1, x2, y2, width=width, outline=outline)
+        return rectangle_id
+    
+    def delete_image_canvas_object(self, image_canvas_object_id):
+        self.image_canvas.delete(image_canvas_object_id)
+    
+    def get_coordinates_of_image_canvas_object(self, image_canvas_object_id):
+        return self.image_canvas.coords(image_canvas_object_id)
+
 
 
 class RightFrame(tk.Frame):
@@ -400,12 +416,12 @@ class RightFrame(tk.Frame):
                 try:
                     function(*args, **kwargs)
                 except Exception as e:
-                    print(f'assign your method to Right Frame Variable Name: {function_name}')
+                    print(f'assign your method to Right Frame Variable Name: {function_name}', e)
             return wrapper
         return decorator
     
     @button_method_assign_warning('add_class')
-    def add_class_command(self, event):
+    def add_class_command(self, event=None):
         print(f'{event}')
         self.add_class()
 
