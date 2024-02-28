@@ -81,11 +81,11 @@ class LabelTool():
         self.mainPanel.bind("<Button-1>", self.mouseClick)
         self.mainPanel.bind("<Button-3>", self.mouseClick)
         self.mainPanel.bind("<Motion>", self.mouseMove)
-        self.mainPanel.bind('v', self.pasteLastBbox) #press 'v' to get bbox of last drawn
-        self.mainPanel.bind('b', self.pasteLastBboxFile) #press 'v' to get bbox of last drawn from previous file
+        self.mainPanel.bind('<Control-v>', self.pasteLastBbox) #press 'v' to get bbox of last drawn
+        self.mainPanel.bind('<Control-b>', self.pasteLastBboxFile) #press 'v' to get bbox of last drawn from previous file
         self.parent.bind("a", self.prevImage) # press 'a' to go backforward
         self.parent.bind("d", self.nextImage) # press 'd' to go forward
-        self.parent.bind("r", self.clearBBoxShortcut)
+        self.parent.bind("<Control-r>", self.clearBBoxShortcut)
 
         self.mainPanel.grid(row = 1, column = 1, columnspan = 3, rowspan = 4, sticky = W+N)
 
