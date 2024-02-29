@@ -448,7 +448,7 @@ class RightFrame(tk.Frame):
         self.clear_all_bbox()
     
     @button_method_assign_warning('combobox_set_class')
-    def combobox_set_class_command(self):
+    def combobox_set_class_command(self, event: tk.Event):
         self.combobox_set_class()
     
     @button_method_assign_warning('num_keys')
@@ -457,6 +457,14 @@ class RightFrame(tk.Frame):
             digit = int(event.char) -1 
             self.num_keys(digit)
 
+    def get_combobox_selected_option(self):
+        return self.current_class_combobox.get()
+
+    def update_combobox_options(self, options, class_index=0):
+        self.current_class_combobox['values'] = options
+        self.current_class_combobox.current(class_index)
+
+        ...
 
 
 
