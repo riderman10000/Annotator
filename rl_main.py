@@ -1,4 +1,5 @@
 import os 
+import json
 import glob 
 import convert 
 from pathlib import Path 
@@ -10,6 +11,8 @@ from tkinter import ttk
 # from tkinter import askstring
 
 from PIL import Image, ImageTk
+
+VERSION = '1.0.0'
 
 FILE = Path(__file__).resolve()
 BASE_DIR = FILE.parents[0]  
@@ -43,6 +46,7 @@ class LabelTool():
         # menu Bar
         self.menu_bar = MenuBar(master=self.root)
         self.root.config(menu=self.menu_bar)
+
         self.menu_bar.new_file = self.new_file 
 
 
@@ -56,17 +60,26 @@ class LabelTool():
         self.current_image_index = 0 
         self.current_image_bbox_list = [] 
         self.current_image_bbox_objects_ids = [] 
-        self.current_class_index = 0
         self.current_rectangle_object = None
 
         self.x1 = 0
         self.y1 = 0  
         self.x2 = 100
         self.y2 = 100  
+        self.current_class_index = 0
 
-        self.point_info = {
-            'class':None,
-            'point':None
+        self.shape_info = {
+            'label':None,
+            'points':[],
+            'shape_type': None,
+            'group_ids': None, 
+        }
+        self.file_json_info = {
+            'version': VERSION,
+            'shapes': [], # self.shape_info
+            'image_name': None, 
+            'imageHeight': None,
+            'imageWidth': None,
         }
 
         self.left_mouse_button_pressed = False 
@@ -107,6 +120,7 @@ class LabelTool():
         self.right_frame.pack(anchor=tk.E) # grid(row=0, column=1) 
     
         self.right_frame.add_class = self.add_class 
+        self.right_frame.combobox_set_class = self.combobox_set_class 
 
     def bottom_frame_widgets(self):
         # self.bottom_frame = BottomFrame(self.root_frame, highlightbackground="red", highlightthickness=2)
@@ -133,15 +147,50 @@ class LabelTool():
 
         self.load_image()
     
-    def load_image(self):
+    def  load_image(self):
         self.current_image_path = self.image_list[self.current_image_index]
         self.image = Image.open(self.current_image_path)
         self.center_frame.load_image(self.image)
 
+    def load_bbox_info(self, current_image_path:str):
+        file_extension = current_image_path.split('.')[-1]
+        current_json_path = current_image_path.replace(file_extension, '.json')
+        if os.path.exists(current_json_path):
+           with open(current_json_path, 'r') as current_json_file:
+                self.file_json_info = json.load(current_json_file)
+                # self.file_json_info['shapes']
+
+                for shape in self.file_json_info['shapes']:
+                    
+                    ...
+                self.current_rectangle_object = self.center_frame.create_rectangle(
+                self.x1, self.y1, self.x2, self.y2, 
+                width=2, outline=COLORS[self.current_class_index])
+
+    def write_bbox_info(self, current_image_path:str):
+        file_extension = current_image_path.split('.')[-1]
+        current_json_path = current_image_path.replace('.'+file_extension, '.json')
+        with open(current_json_path, 'w') as current_json_file:
+            json.dump(self.file_json_info, current_json_file)
+        ...
+
     def add_class(self):
         new_class = simpledialog.askstring("New Class", "Enter the name of the new class:")
+        if new_class in self.class_list:
+            messagebox.showwarning('Class Exists', f'{new_class} already exists')        
+            return 
         self.class_list.append(new_class)
         messagebox.showinfo('new class created', f'successfully created new class {new_class}')        
+        self.current_class_index = len(self.class_list)-1
+        self.right_frame.update_combobox_options(self.class_list, len(self.class_list)-1)
+
+    def combobox_set_class(self):
+        selected_class_label = self.right_frame.get_combobox_selected_option()
+        if selected_class_label in self.class_list:
+            self.current_class_index = self.class_list.index(selected_class_label)
+            return 
+        messagebox.WARNING('No Class available', f'{selected_class_label} is not available in the class list create it.')
+        ...
 
     def reset_checkpoint(self): 
         # if self.cur == 0 or self.cur==1:
@@ -178,28 +227,38 @@ class LabelTool():
         ...
     
     def mouse_left_released(self, x, y):
-        # if self.class_present():
-        self.left_mouse_button_pressed = False
-        self.x2, self.y2 = x, y 
-        # self.bbox_id = self.center_frame.image_canvas.create_rectangle(self.x1, self.y1, self.x2, self.y2,
-        #     width=2, outline=COLORS[self.current_class_index])
-        if self.current_rectangle_object:
-            self.center_frame.delete_image_canvas_object(self.current_rectangle_object)
-        
-        self.current_rectangle_object = self.center_frame.create_rectangle(
-            self.x1, self.y1, self.x2, self.y2, 
-            width=2, outline=COLORS[self.current_class_index])
-        if self.x1 > self.x2:
-            self.x1, self.x2 = self.x2, self.x1 
-        if self.y1 > self.y2:
-            self.x1, self.x2 = self.x2, self.x1 
+        if self.left_mouse_button_pressed:
+            self.left_mouse_button_pressed = False
+            self.x2, self.y2 = x, y 
+            # self.bbox_id = self.center_frame.image_canvas.create_rectangle(self.x1, self.y1, self.x2, self.y2,
+            #     width=2, outline=COLORS[self.current_class_index])
+            if self.current_rectangle_object:
+                self.center_frame.delete_image_canvas_object(self.current_rectangle_object)
+            
+            self.current_rectangle_object = self.center_frame.create_rectangle(
+                self.x1, self.y1, self.x2, self.y2, 
+                width=2, outline=COLORS[self.current_class_index])
+            if self.x1 > self.x2:
+                self.x1, self.x2 = self.x2, self.x1 
+            if self.y1 > self.y2:
+                self.x1, self.x2 = self.x2, self.x1 
 
-        self.current_image_bbox_objects_ids.append(self.current_rectangle_object)
-        self.current_image_bbox_list.append([self.current_class_index, self.x1, self.y1, self.x2, self.y2])
-        
-        self.current_rectangle_object = None 
-        # need to add to the list box to the right frame
+            self.current_image_bbox_objects_ids.append(self.current_rectangle_object)
+            self.current_image_bbox_list.append([self.current_class_index, self.x1, self.y1, self.x2, self.y2])
+            
+            self.current_rectangle_object = None
 
+            # adding to the file in json format 
+            temp_shape_info = self.shape_info.copy()
+            temp_shape_info['label'] = self.class_list[self.current_class_index]
+            temp_shape_info['points'] = [self.x1, self.y1, self.x2, self.y2]
+            temp_shape_info['shape_type'] = "rectangle"
+            self.file_json_info['shapes'].append(temp_shape_info)
+
+            # need to add to the list box to the right frame
+
+            # writing to a json file 
+            self.write_bbox_info(self.image_list[self.current_image_index])
 
     def mouse_right_pressed(self, x, y):
         for object_index, image_bbox_object in enumerate(self.current_image_bbox_objects_ids):
@@ -224,8 +283,6 @@ class LabelTool():
                 self.x1, self.y1, self.x2, self.y2, 
                 width=2, outline=COLORS[self.current_class_index])
         ...
-
-
 
 if __name__ == "__main__":
     root = tk.Tk()
