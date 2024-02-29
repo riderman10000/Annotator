@@ -369,6 +369,9 @@ class RightFrame(tk.Frame):
         self.class_name = tk.StringVar()
         self.current_class_label = tk.Label(self, text='Select Object Class')
         self.current_class_combobox = ttk.Combobox(self, state='readonly', textvariable=self.class_name)
+        self.combobox_set_class = None 
+        self.num_keys = None 
+        
         self.add_class_button = tk.Button(self, text='Add Class', bg='#4cc9f0',fg = 'white',relief='raised',command=self.add_class_command)
         self.add_class = None 
 
@@ -390,6 +393,7 @@ class RightFrame(tk.Frame):
         self.file_list_list_box = tk.Listbox(self.file_list_frame, width=40, height=12)
 
         self.place_widgets()
+        self.set_shortcuts() 
 
     def place_widgets(self):
         self.current_class_label.grid(row=0, column=0, columnspan=2, sticky=tk.W + tk.E)
@@ -408,6 +412,11 @@ class RightFrame(tk.Frame):
         self.file_list_list_box.grid(row=1, column=0)
 
         # self.file_list_list_box.grid(row=8, column=0, columnspan=2, sticky=tk.W + tk.E)
+        ...
+    
+    def set_shortcuts(self):
+        self.bind('<Key>', self.num_keys_command)
+        self.current_class_combobox.bind('<<ComboboxSelected>>', self.combobox_set_class_command)
         ...
 
     def button_method_assign_warning(function_name):
@@ -437,6 +446,18 @@ class RightFrame(tk.Frame):
     @button_method_assign_warning('clear_all_bbox')
     def clear_all_bbox_command(self):
         self.clear_all_bbox()
+    
+    @button_method_assign_warning('combobox_set_class')
+    def combobox_set_class_command(self):
+        self.combobox_set_class()
+    
+    @button_method_assign_warning('num_keys')
+    def num_keys_command(self, event: tk.Event):
+        if event.char.isdigit():
+            digit = int(event.char) -1 
+            self.num_keys(digit)
+
+
 
 
 if __name__ == "__main__":

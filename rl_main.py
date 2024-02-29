@@ -210,8 +210,6 @@ class LabelTool():
                 self.current_image_bbox_objects_ids.pop(object_index)
                 self.current_image_bbox_list.pop(object_index)
                 # need to delete from right's list box
-                
-
         ...
 
     def mouse_moved(self, x, y):
