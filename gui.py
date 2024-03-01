@@ -464,9 +464,16 @@ class RightFrame(tk.Frame):
         self.current_class_combobox['values'] = options
         self.current_class_combobox.current(class_index)
 
+    def insert_to_bbox_list(self, bbox_info, index, fg = 'green'):
+        self.bbox_list_box.insert(tk.END, bbox_info)
+        self.bbox_list_box.itemconfig(index=index, fg=fg)
         ...
+    def delete_from_bbox_list(self, index):
+        self.bbox_list_box.delete(index)
 
-
+    def clear_bbox_list(self):
+        self.bbox_list_box.delete(0, self.bbox_list_box.size()-1)
+        
 
 if __name__ == "__main__":
     root = tk.Tk() 

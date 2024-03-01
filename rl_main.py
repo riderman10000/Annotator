@@ -52,6 +52,7 @@ class LabelTool():
 
     def label_tool_variables(self):
         self.image_directory = BASE_DIR
+
         self.image_extensions = ["*.jpg", "*.png"]
         self.image_list = []
         self.class_list = [] 
@@ -82,6 +83,8 @@ class LabelTool():
             'imageHeight': None,
             'imageWidth': None,
         }
+
+        self.bbox_list_str = '{class_name} : ({x1}, {y1}) -> ({x2}, {y2})'
 
         self.left_mouse_button_pressed = False 
         self.right_mouse_button_pressed = False 
@@ -150,6 +153,7 @@ class LabelTool():
     
     def  load_image(self):
         self.clear_bboxes()
+        self.right_frame.clear_bbox_list()
         self.current_image_bbox_objects_ids = []
         self.current_image_bbox_list = [] 
 
@@ -198,6 +202,13 @@ class LabelTool():
                         self.current_image_bbox_list.append(
                             [self.current_image_index, x1, y1, x2, y2])
                         
+                        # adding to the list box to the right frame
+                        self.right_frame.insert_to_bbox_list(
+                            self.bbox_list_str.format(class_name=self.class_list[self.current_class_index], x1=x1, y1=y1, x2=x2, y2=y2),
+                            index=len(self.current_image_bbox_list)-1, 
+                            fg=COLORS[self.current_class_index]
+                            )
+                
                 self.right_frame.update_combobox_options(self.class_list, len(self.class_list)-1)
         ...
 
@@ -290,6 +301,11 @@ class LabelTool():
             self.file_json_info['shapes'].append(temp_shape_info)
 
             # need to add to the list box to the right frame
+            self.right_frame.insert_to_bbox_list(
+                self.bbox_list_str.format(class_name=self.class_list[self.current_class_index], x1=self.x1, y1=self.y1, x2=self.x2, y2=self.y2),
+                index=len(self.current_image_bbox_list)-1, 
+                fg=COLORS[self.current_class_index]
+                )
 
             # writing to a json file 
             self.write_bbox_info(self.image_list[self.current_image_index])
@@ -302,6 +318,8 @@ class LabelTool():
                 self.center_frame.delete_image_canvas_object(image_bbox_object)
                 self.current_image_bbox_objects_ids.pop(object_index)
                 self.current_image_bbox_list.pop(object_index)
+                self.file_json_info['shapes'].pop(object_index)
+                self.write_bbox_info(self.image_list[self.current_image_index])
                 # need to delete from right's list box
         ...
 
