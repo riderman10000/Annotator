@@ -55,6 +55,7 @@ class LabelTool():
         self.image_extensions = ["*.jpg", "*.png"]
         self.image_list = []
         self.class_list = [] 
+        self.unique_classes = set([])
         self.total_number_of_images = 0
         
         self.current_image_index = 0 
@@ -151,21 +152,31 @@ class LabelTool():
         self.current_image_path = self.image_list[self.current_image_index]
         self.image = Image.open(self.current_image_path)
         self.center_frame.load_image(self.image)
+        self.load_bbox_info(self.current_image_path)
 
     def load_bbox_info(self, current_image_path:str):
         file_extension = current_image_path.split('.')[-1]
-        current_json_path = current_image_path.replace(file_extension, '.json')
+        current_json_path = current_image_path.replace('.'+file_extension, '.json')
         if os.path.exists(current_json_path):
            with open(current_json_path, 'r') as current_json_file:
                 self.file_json_info = json.load(current_json_file)
-                # self.file_json_info['shapes']
 
                 for shape in self.file_json_info['shapes']:
-                    
+                    if shape['shape_type'] == 'rectangle':
+                        current_class = shape['label']
+                        if current_class not in self.class_list:
+                            self.class_list.append(current_class)
+                        self.current_class_index = self.class_list.index(current_class)
+
+                        x1, y1, x2, y2 = shape['points']
+                        rectangle_object = self.center_frame.create_rectangle(
+                            x1, y1, x2, y2, 
+                            width=2, outline=COLORS[self.current_class_index])
+                        self.current_image_bbox_objects_ids.append(rectangle_object)
+                        self.current_image_bbox_list.append(
+                            [self.current_image_index, x1, y1, x2, y2])
+
                     ...
-                self.current_rectangle_object = self.center_frame.create_rectangle(
-                self.x1, self.y1, self.x2, self.y2, 
-                width=2, outline=COLORS[self.current_class_index])
 
     def write_bbox_info(self, current_image_path:str):
         file_extension = current_image_path.split('.')[-1]
