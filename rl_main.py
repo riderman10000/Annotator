@@ -126,6 +126,8 @@ class LabelTool():
         self.right_frame.add_class = self.add_class 
         self.right_frame.combobox_set_class = self.combobox_set_class 
 
+        self.right_frame.clear_all_bbox  = self.clear_bboxes
+
     def bottom_frame_widgets(self):
         # self.bottom_frame = BottomFrame(self.root_frame, highlightbackground="red", highlightthickness=2)
         # self.bottom_frame.pack(side=tk.BOTTOM, anchor=tk.SE, expand=True)
@@ -153,7 +155,6 @@ class LabelTool():
     
     def  load_image(self):
         self.clear_bboxes()
-        self.right_frame.clear_bbox_list()
         self.current_image_bbox_objects_ids = []
         self.current_image_bbox_list = [] 
 
@@ -179,6 +180,7 @@ class LabelTool():
         if len(self.current_image_bbox_objects_ids):
             for image_canvas_object_id in self.current_image_bbox_objects_ids:
                 self.center_frame.delete_image_canvas_object(image_canvas_object_id)
+        self.right_frame.clear_bbox_list()
 
     def load_bbox_info(self, current_image_path:str):
         file_extension = current_image_path.split('.')[-1]
@@ -210,6 +212,7 @@ class LabelTool():
                             )
                 
                 self.right_frame.update_combobox_options(self.class_list, len(self.class_list)-1)
+                self.current_class_index = len(self.class_list)-1
         ...
 
     def write_bbox_info(self, current_image_path:str):
