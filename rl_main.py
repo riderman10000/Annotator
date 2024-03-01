@@ -321,6 +321,7 @@ class LabelTool():
                 self.file_json_info['shapes'].pop(object_index)
                 self.write_bbox_info(self.image_list[self.current_image_index])
                 # need to delete from right's list box
+                self.right_frame.delete_from_bbox_list(object_index)
         ...
 
     def mouse_moved(self, x, y):
