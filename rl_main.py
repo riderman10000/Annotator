@@ -154,9 +154,7 @@ class LabelTool():
         self.load_image()
     
     def  load_image(self):
-        self.clear_bboxes()
-        self.current_image_bbox_objects_ids = []
-        self.current_image_bbox_list = [] 
+        self.clear_bboxes() 
 
         self.current_image_path = self.image_list[self.current_image_index]
         self.image = Image.open(self.current_image_path)
@@ -181,6 +179,11 @@ class LabelTool():
             for image_canvas_object_id in self.current_image_bbox_objects_ids:
                 self.center_frame.delete_image_canvas_object(image_canvas_object_id)
         self.right_frame.clear_bbox_list()
+        
+        self.current_class_index = 0
+        self.current_image_bbox_objects_ids = []
+        self.current_image_bbox_list = [] 
+
 
     def load_bbox_info(self, current_image_path:str):
         file_extension = current_image_path.split('.')[-1]
