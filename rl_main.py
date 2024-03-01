@@ -149,10 +149,32 @@ class LabelTool():
         self.load_image()
     
     def  load_image(self):
+        self.clear_bboxes()
+        self.current_image_bbox_objects_ids = []
+        self.current_image_bbox_list = [] 
+
         self.current_image_path = self.image_list[self.current_image_index]
         self.image = Image.open(self.current_image_path)
         self.center_frame.load_image(self.image)
         self.load_bbox_info(self.current_image_path)
+
+    def clear_bboxes(self):
+        self.shape_info = {
+            'label':None,
+            'points':[],
+            'shape_type': None,
+            'group_ids': None, 
+        }
+        self.file_json_info = {
+            'version': VERSION,
+            'shapes': [], # self.shape_info
+            'image_name': None, 
+            'imageHeight': None,
+            'imageWidth': None,
+        }
+        if len(self.current_image_bbox_objects_ids):
+            for image_canvas_object_id in self.current_image_bbox_objects_ids:
+                self.center_frame.delete_image_canvas_object(image_canvas_object_id)
 
     def load_bbox_info(self, current_image_path:str):
         file_extension = current_image_path.split('.')[-1]
@@ -175,8 +197,9 @@ class LabelTool():
                         self.current_image_bbox_objects_ids.append(rectangle_object)
                         self.current_image_bbox_list.append(
                             [self.current_image_index, x1, y1, x2, y2])
-
-                    ...
+                        
+                self.right_frame.update_combobox_options(self.class_list, len(self.class_list)-1)
+        ...
 
     def write_bbox_info(self, current_image_path:str):
         file_extension = current_image_path.split('.')[-1]
