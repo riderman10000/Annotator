@@ -3,6 +3,8 @@
 from typing import Callable, Any, TypeVar, Optional
 from typing_extensions import ParamSpec
 
+import os 
+
 import tkinter as tk
 from tkinter import ttk
 
@@ -195,6 +197,9 @@ class BottomFrame(tk.Frame):
         self.go_to_image_label.pack(side=tk.RIGHT)
         self.progress_label.pack(side=tk.RIGHT)
         ...
+    
+    def update_progress(self, number, total_number):
+        self.progress_label.config(text=f"Progress: {number} / {total_number}")
 
 class CenterFrame(BottomFrame):
     @inherit_signature_from(tk.Frame.__init__)
@@ -474,6 +479,16 @@ class RightFrame(tk.Frame):
     def clear_bbox_list(self):
         self.bbox_list_box.delete(0, self.bbox_list_box.size()-1)
         
+    def insert_to_file_list(self, files_list):
+        for file in files_list:
+            file_name = os.path.split(file)[-1]
+            self.file_list_list_box.insert(tk.END, file_name)
+
+    def update_file_list(self, index, fg = 'green'):
+        self.file_list_list_box.itemconfig(index=index, fg=fg)
+
+    def clear_file_list(self):
+        self.file_list_list_box.delete(0, self.file_list_list_box.size() - 1)
 
 if __name__ == "__main__":
     root = tk.Tk() 

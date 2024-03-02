@@ -54,6 +54,7 @@ class LabelTool():
         self.image_directory = BASE_DIR
 
         self.image_extensions = ["*.jpg", "*.png"]
+        self.json_extension = ['*.json'] 
         self.image_list = []
         self.class_list = [] 
         self.unique_classes = set([])
@@ -91,7 +92,8 @@ class LabelTool():
 
     # methods for menu widgets
     def new_file(self):
-        print('is called')
+        self.label_tool_variables()
+        self.right_frame.clear_file_list()
         self.load_image_directory()
         ...
 
@@ -122,7 +124,7 @@ class LabelTool():
     def right_frame_widgets(self):
         self.right_frame = RightFrame(self.root_frame, highlightbackground="red", highlightthickness=2)
         self.right_frame.pack(anchor=tk.E) # grid(row=0, column=1) 
-    
+
         self.right_frame.add_class = self.add_class 
         self.right_frame.combobox_set_class = self.combobox_set_class 
 
@@ -151,6 +153,7 @@ class LabelTool():
             return
         self.current_image_index = 0
 
+        self.right_frame.insert_to_file_list(self.image_list)
         self.load_image()
     
     def  load_image(self):
@@ -160,6 +163,8 @@ class LabelTool():
         self.image = Image.open(self.current_image_path)
         self.center_frame.load_image(self.image)
         self.load_bbox_info(self.current_image_path)
+        self.file_list_update()
+        self.update_progress_label()
 
     def clear_bboxes(self):
         self.shape_info = {
@@ -243,6 +248,25 @@ class LabelTool():
         messagebox.WARNING('No Class available', f'{selected_class_label} is not available in the class list create it.')
         ...
 
+    def update_progress_label(self):
+        # self.image_directory 
+        progress = 0 
+        for ext in self.json_extension:
+            json_list = glob.glob(os.path.join(self.image_directory, ext))
+            for json_file_path in json_list:
+                with open(json_file_path, 'r') as json_file:
+                    file_data = json.load(json_file)
+                    if len(file_data['shapes']):
+                        progress+= 1
+        
+        self.center_frame.update_progress(progress, self.total_number_of_images)
+
+
+
+        for ext in ('*.png', '*.jpg'):
+            self.image_list.extend(glob.glob(os.path.join(self.image_directory, ext)))
+        
+
     def reset_checkpoint(self): 
         # if self.cur == 0 or self.cur==1:
         #     print("Already at the first image. No need to reset.")
@@ -316,6 +340,10 @@ class LabelTool():
             # writing to a json file 
             self.write_bbox_info(self.image_list[self.current_image_index])
 
+            # update the file status as bbox made
+            self.file_list_update()
+
+
     def mouse_right_pressed(self, x, y):
         for object_index, image_bbox_object in enumerate(self.current_image_bbox_objects_ids):
             x1, y1, x2, y2 = self.center_frame.get_coordinates_of_image_canvas_object(image_bbox_object)
@@ -341,6 +369,14 @@ class LabelTool():
             self.current_rectangle_object = self.center_frame.create_rectangle(
                 self.x1, self.y1, self.x2, self.y2, 
                 width=2, outline=COLORS[self.current_class_index])
+        ...
+    
+    # create a file list update in the right frame
+    def file_list_update(self):
+        if len(self.current_image_bbox_list):
+            self.right_frame.update_file_list(self.current_image_index, fg='green')
+        else: 
+            self.right_frame.update_file_list(self.current_image_index, fg= 'black')
         ...
 
 if __name__ == "__main__":
