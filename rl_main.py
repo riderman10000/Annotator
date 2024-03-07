@@ -121,6 +121,13 @@ class LabelTool():
 
         self.center_frame.mouse_moved = self.mouse_moved 
 
+        self.center_frame.goto_image = self.goto_image
+
+    def goto_image(self, image_number):
+        if image_number < self.total_number_of_images:
+            self.current_image_index = image_number
+            self.load_image()
+
     def right_frame_widgets(self):
         self.right_frame = RightFrame(self.root_frame, highlightbackground="red", highlightthickness=2)
         self.right_frame.pack(anchor=tk.E) # grid(row=0, column=1) 

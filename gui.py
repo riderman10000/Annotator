@@ -182,8 +182,10 @@ class BottomFrame(tk.Frame):
         except Exception as e :
             master = self 
 
-        self.go_entry = tk.Button(master, text = 'Go',bg='#dde5b6',relief='ridge') # , command = self.gotoImage)
+        self.goto_button = tk.Button(master, text = 'Gox',bg='#dde5b6',relief='ridge', command=self.goto_image_command) # , command = self.gotoImage)
+        self.goto_image = None 
         self.go_to_image_label = tk.Label(master, text = "Go to Image No.")
+        
         self.image_number_entry = tk.Entry(master, width = 5)
         self.progress_label = tk.Label(master, text = "Progress:     /    ")
         self.mouse_position_label = tk.Label(master, text='x: 0, y: 0')        
@@ -192,12 +194,32 @@ class BottomFrame(tk.Frame):
 
     def place_widgets(self):
         self.mouse_position_label.pack(side=tk.RIGHT)
-        self.go_entry.pack(side=tk.RIGHT)
+        self.goto_button.pack(side=tk.RIGHT)
         self.image_number_entry.pack(side=tk.RIGHT)
         self.go_to_image_label.pack(side=tk.RIGHT)
         self.progress_label.pack(side=tk.RIGHT)
         ...
+
+    def button_method_assign_warning(function_name):
+        def decorator(function):
+            def wrapper(*args, **kwargs):
+                try:
+                    function(*args, **kwargs)
+                except Exception as e:
+                    print(f'assign your method to Central Frame Variable Name: {function_name}, error: {e}')
+            return wrapper
+        return decorator
     
+    @button_method_assign_warning('goto_image')
+    def goto_image_command(self):
+        image_index = self.image_number_entry.get()
+        try:
+            image_index = int(image_index)
+
+            self.goto_image(image_index)
+        except Exception as e:
+            print('error', e)
+
     def update_progress(self, number, total_number):
         self.progress_label.config(text=f"Progress: {number} / {total_number}")
 
