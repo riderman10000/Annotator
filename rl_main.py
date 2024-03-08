@@ -22,7 +22,10 @@ COLORS = ['red', 'blue', 'olive', 'teal', 'cyan', 'green', 'black', 'purple', 'o
 
 # image sizes for the examples
 SIZE = 256, 256
+
 from gui import MenuBar, LeftFrame, CenterFrame, RightFrame, BottomFrame
+from Tools.export import export_yolo_from_directory 
+
 class LabelTool():
     def __init__(self, master: tk.Tk) -> None:
         self.root = master 
@@ -48,7 +51,7 @@ class LabelTool():
         self.root.config(menu=self.menu_bar)
 
         self.menu_bar.new_file = self.new_file 
-
+        self.menu_bar.export_yolo = self.export_yolo 
 
     def label_tool_variables(self):
         self.image_directory = BASE_DIR
@@ -231,6 +234,9 @@ class LabelTool():
         ...
 
     def write_bbox_info(self, current_image_path:str):
+        self.file_json_info['imageHeight'] = self.image.height
+        self.file_json_info['imageWidth'] = self.image.width 
+
         file_extension = current_image_path.split('.')[-1]
         current_json_path = current_image_path.replace('.'+file_extension, '.json')
         with open(current_json_path, 'w') as current_json_file:
@@ -336,7 +342,7 @@ class LabelTool():
             temp_shape_info['points'] = [self.x1, self.y1, self.x2, self.y2]
             temp_shape_info['shape_type'] = "rectangle"
             self.file_json_info['shapes'].append(temp_shape_info)
-
+            
             # need to add to the list box to the right frame
             self.right_frame.insert_to_bbox_list(
                 self.bbox_list_str.format(class_name=self.class_list[self.current_class_index], x1=self.x1, y1=self.y1, x2=self.x2, y2=self.y2),
@@ -384,6 +390,11 @@ class LabelTool():
             self.right_frame.update_file_list(self.current_image_index, fg='green')
         else: 
             self.right_frame.update_file_list(self.current_image_index, fg= 'black')
+        ...
+
+    def export_yolo(self):
+        export_yolo_from_directory(self.image_directory)
+
         ...
 
 if __name__ == "__main__":

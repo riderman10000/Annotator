@@ -64,7 +64,7 @@ class MenuBar(tk.Menu):
                 try:
                     function(*args, **kwargs)
                 except Exception as e:
-                    print(f'assign your method to Menu Bar Variable Name: {function_name}')
+                    print(f'assign your method to Menu Bar Variable Name: {function_name}', e)
             return wrapper
         return decorator
     ...
