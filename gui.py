@@ -7,6 +7,7 @@ import os
 
 import tkinter as tk
 from tkinter import ttk
+from tkscrolledframe import ScrolledFrame
 
 from PIL import Image, ImageTk
 
@@ -45,6 +46,7 @@ class MenuBar(tk.Menu):
         
         self.file_menu = tk.Menu(self, tearoff=False)
         self.tools_menu = tk.Menu(self, tearoff=False)
+        self.export_option_menu = tk.Menu(self, tearoff=False)
         # self.export_yolo_menu = tk.Menubutton(self.tools_menu)
 
         self.make_menu()
@@ -54,7 +56,7 @@ class MenuBar(tk.Menu):
     def make_menu(self):
         self.add_cascade(menu=self.file_menu, label="File")
         self.add_cascade(menu=self.tools_menu, label="Tools")
-        # self.tools_menu.add_cascade(menu=self.export_yolo_menu, label="Export Yolo")
+        self.tools_menu.add_cascade(menu=self.export_option_menu, label="Export")
 
     def button_method_assign_warning(function_name):
         def decorator(function):
@@ -75,9 +77,16 @@ class MenuBar(tk.Menu):
         )
         self.new_file = None 
 
-        self.tools_menu.add_command(
-            label="Export Yolo",
-            accelerator="Y",
+        self.export_option_menu.add_command(
+            label="Yolo Format",
+            # accelerator="Y",
+            command=self.export_yolo_command
+        )
+        self.export_yolo = None 
+
+        self.export_option_menu.add_command(
+            label="Paddle Detection Format",
+            # accelerator="Y",
             command=self.export_yolo_command
         )
         self.export_yolo = None 
@@ -100,7 +109,6 @@ class LeftFrame(tk.Frame):
     @inherit_signature_from(tk.Frame.__init__)
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-
 
         self.load_directory_button = tk.Button(self, text="Open Image Directory", bg='#84a59d',relief='flat',command = self.load_directory_button_command)
         self.load_image_directory = None  # assgin the actual statment to this variable
@@ -230,6 +238,7 @@ class CenterFrame(BottomFrame):
         self.widgetName = "CenterFrame"
         self.horizontal_bar = tk.Scrollbar(self, orient='horizontal')
         self.vertical_bar = tk.Scrollbar(self, orient='vertical')
+        # ScrolledFrame.bind_scroll_wheel()
 
         self.width = 2000
         self.height = 2000
