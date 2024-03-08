@@ -7,7 +7,7 @@ import os
 
 import tkinter as tk
 from tkinter import ttk
-from tkscrolledframe import ScrolledFrame
+# from tkscrolledframe import ScrolledFrame
 
 from PIL import Image, ImageTk
 

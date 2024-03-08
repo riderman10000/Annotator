@@ -68,7 +68,7 @@ def export_yolo_from_directory(json_directory, save_file_directory = None):
                     if DEBUG:
                         print('[+] export yolo {obj_class} {norm_x} {norm_y} {norm_w} {norm_h}\n'.format(
                             obj_class=obj_class, norm_x=norm_x, norm_y= norm_y, norm_w = norm_w, norm_h = norm_h))
-                    label_file_obj.write('{obj_class} {norm_x} {norm_y} {norm_w} {norm_h}\n'.format(
+                    label_file_obj.write('\"{obj_class}\" {norm_x} {norm_y} {norm_w} {norm_h}\n'.format(
                             obj_class=obj_class, norm_x=norm_x, norm_y= norm_y, norm_w = norm_w, norm_h = norm_h))
                 ...
     ...

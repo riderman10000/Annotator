@@ -329,7 +329,7 @@ class LabelTool():
             if self.x1 > self.x2:
                 self.x1, self.x2 = self.x2, self.x1 
             if self.y1 > self.y2:
-                self.x1, self.x2 = self.x2, self.x1 
+                self.y1, self.y2 = self.y2, self.y1 
 
             self.current_image_bbox_objects_ids.append(self.current_rectangle_object)
             self.current_image_bbox_list.append([self.current_class_index, self.x1, self.y1, self.x2, self.y2])
