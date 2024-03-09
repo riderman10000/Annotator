@@ -1,6 +1,7 @@
 import os  
 import glob 
 import json 
+import yaml
 
 shape_info = {
     'label':None,
@@ -15,7 +16,7 @@ file_json_info = {
     'imageHeight': None,
     'imageWidth': None,
 }
-DEBUG = True 
+DEBUG = False
 
 def convert_yolo_to_voc(image, yolo_format, for_albumentation = False):
     image_height, image_width, channels = image.shape 
@@ -45,7 +46,22 @@ def convert_voc_to_yolo(image_height_width_info, voc_format):
     return obj_class, norm_x, norm_y, norm_w, norm_h
 
 def export_yolo_from_directory(json_directory, save_file_directory = None):
+    # finding unique classes 
+    unique_objects = set([])
     image_json_path_list = glob.glob(os.path.join(json_directory, "*.json"))
+    
+    for image_json_path in image_json_path_list:
+        with open(image_json_path, 'r') as image_json_file:
+            image_file_json_info = json.load(image_json_file)
+            for shape in image_file_json_info['shapes']:
+                unique_objects.add(shape['label'])
+    unique_objects = list(unique_objects)
+    unique_label_dict = { unique_objects.index(x): x for x in unique_objects}
+    with open(os.path.join(json_directory, 'data.yaml'), 'w+') as data_yaml_file:
+        data = {}
+        data['names'] = unique_label_dict
+        yaml.dump(data, data_yaml_file)
+    
     for image_json_path in image_json_path_list:
         converted_bbox_infos = []
         with open(image_json_path, 'r') as image_json_file:
@@ -70,5 +86,3 @@ def export_yolo_from_directory(json_directory, save_file_directory = None):
                             obj_class=obj_class, norm_x=norm_x, norm_y= norm_y, norm_w = norm_w, norm_h = norm_h))
                     label_file_obj.write('\"{obj_class}\" {norm_x} {norm_y} {norm_w} {norm_h}\n'.format(
                             obj_class=obj_class, norm_x=norm_x, norm_y= norm_y, norm_w = norm_w, norm_h = norm_h))
-                ...
-    ...

@@ -5,6 +5,7 @@ __pycache__/**/*
 /**/*.jpg
 /**/*.txt
 
+*.yaml
 *.json
 *.jpg
 *.txt
